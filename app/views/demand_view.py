@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from demand import compute_demand, po_date_for
+from state import DEFAULT_MACHINE_QTY, DEFAULT_TARGET
 from master_data import BOM, BUILD_WEEKS, MACHINES, MATERIALS, PHASES
 
 
@@ -17,9 +18,9 @@ def render() -> None:
         for col, m in zip(cols, MACHINES.values()):
             machine_qty[m.code] = col.number_input(
                 f"{m.code} — {m.name}", min_value=0, step=1,
-                value=st.session_state.get("machine_qty", {}).get(m.code, {"PS-200": 12, "PS-075": 20}[m.code]))
+                value=st.session_state.get("machine_qty", DEFAULT_MACHINE_QTY).get(m.code, 0))
         target = cols[-1].date_input("Target completion date",
-                                     value=st.session_state.get("target_completion", date(2027, 2, 10)))
+                                     value=st.session_state.get("target_completion", DEFAULT_TARGET))
         include_zero = st.checkbox("Show variants with zero demand")
         st.form_submit_button("Calculate demand", type="primary")
 
@@ -28,7 +29,6 @@ def render() -> None:
 
     po = po_date_for(target)
     df = compute_demand(machine_qty, target, include_zero=include_zero)
-    st.session_state["demand"] = compute_demand(machine_qty, target)
 
     c1, c2, c3 = st.columns(3)
     c1.metric("Latest PO date", po.strftime("%d %b %Y"))
