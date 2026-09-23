@@ -7,7 +7,13 @@ import streamlit as st
 
 
 def get_secret(name: str) -> str | None:
-    """Top-level secret, then a secret nested one level under a [section], then an env var."""
+    """Top-level secret, then a secret nested one level under a [section], then an env var.
+    Surrounding whitespace (common when pasting) is stripped."""
+    value = _raw_secret(name)
+    return value.strip() if value else None
+
+
+def _raw_secret(name: str) -> str | None:
     try:
         if name in st.secrets:
             return str(st.secrets[name])

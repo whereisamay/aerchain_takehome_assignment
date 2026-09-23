@@ -16,8 +16,13 @@ def model_name() -> str:
     return get_secret("ANTHROPIC_MODEL") or DEFAULT_MODEL
 
 
+def _api_key() -> str:
+    """API keys never contain whitespace, so drop any line breaks a paste introduced."""
+    return "".join((get_secret("ANTHROPIC_API_KEY") or "").split())
+
+
 def client() -> anthropic.Anthropic:
-    key = get_secret("ANTHROPIC_API_KEY")
+    key = _api_key()
     if not key:
         raise LLMError("ANTHROPIC_API_KEY is not configured in secrets.")
     return anthropic.Anthropic(api_key=key)
@@ -37,7 +42,10 @@ def json_call(system: str, messages: list[dict], schema: dict, effort: str = "me
     except anthropic.BadRequestError as e:
         raise LLMError(f"Model request rejected: {e.message}") from e
     except anthropic.AuthenticationError as e:
-        raise LLMError("Anthropic API key is invalid.") from e
+        key = _api_key()
+        raise LLMError(f"Anthropic rejected the API key (key in secrets starts '{key[:14]}…', "
+                       f"{len(key)} characters; a full key is usually 108). Re-copy it from the "
+                       "Claude Console into Streamlit secrets.") from e
     except anthropic.RateLimitError as e:
         raise LLMError("Rate limited by the Anthropic API — try again in a moment.") from e
     except anthropic.APIStatusError as e:
