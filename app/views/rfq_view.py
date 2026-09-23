@@ -8,16 +8,9 @@ import db
 from copilot import assistant_turn_text, draft_rfq
 from llm import LLMError, model_name
 from master_data import MATERIALS
-from rfq import build_rfqs, validate_rfq
+from rfq import validate_rfq
 from rfq_xlsx import render_rfq_xlsx
-from state import current_plan
-
-
-def _ensure_generated(force: bool = False) -> None:
-    if force or not db.list_rfqs():
-        _, _, demand, po = current_plan()
-        for r in build_rfqs(demand, po):
-            db.save_rfq(r, "generated")
+from state import current_plan, ensure_rfqs
 
 
 def _copilot() -> None:
@@ -136,7 +129,7 @@ def render() -> None:
     st.header("RFQs")
     st.caption("One RFQ per material, generated deterministically from the demand plan. "
                "JSON first, rendered to an xlsx pack second.")
-    _ensure_generated()
+    ensure_rfqs()
     rfqs = db.list_rfqs()
     st.dataframe(pd.DataFrame([{
         "RFQ": r["rfq_id"], "Material": r["material"], "Phase": r["phase"],
@@ -146,7 +139,7 @@ def render() -> None:
     } for r in rfqs]), hide_index=True, width="stretch")
     if st.button("Regenerate all from current demand plan",
                  help="Overwrites every RFQ, including edits, with values from the Demand screen."):
-        _ensure_generated(force=True)
+        ensure_rfqs(force=True)
         st.rerun()
 
     with st.container(border=True):

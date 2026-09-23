@@ -372,3 +372,70 @@ if __name__ == "__main__":
     pdf = vendor_f()
     print(pdf)
     print(vendor_f_simulated_photo(pdf))
+
+
+# --------------------------------------------------------------------------- demo inbox
+# Wrap each response in the email the vendor would actually send. These land in data/demo_inbox/,
+# which the app's "simulate vendor replies" button copies into the inbox. Each one exercises a
+# different correlation path.
+import hashlib  # noqa: E402
+from email.message import EmailMessage  # noqa: E402
+import mimetypes  # noqa: E402
+
+DEMO_INBOX = Path(__file__).resolve().parents[1] / "data" / "demo_inbox"
+RFQ = "RFQ-2026-MCH-005"
+
+
+def _reply_addr(vendor_code: str) -> str:
+    # Mirrors the token scheme the app uses when it sends the RFQ (app/mail.py token_for).
+    tok = hashlib.sha256(f"deccan-flow-rfq|{RFQ}|{vendor_code}".encode()).hexdigest()[:4]
+    return f"rfq+005-v{vendor_code.lower()}-{tok}@buyer.example"
+
+
+def _eml(name, frm, to, subject, date, body, attachment=None):
+    m = EmailMessage()
+    m["From"], m["To"], m["Subject"], m["Date"] = frm, to, subject, date
+    m["Message-ID"] = f"<{hashlib.md5(name.encode()).hexdigest()}@{frm.split('@')[-1].rstrip('>')}>"
+    m.set_content(body)
+    if attachment:
+        mime = mimetypes.guess_type(attachment.name)[0] or "application/octet-stream"
+        mt, st = mime.split("/", 1)
+        m.add_attachment(attachment.read_bytes(), maintype=mt, subtype=st, filename=attachment.name)
+    DEMO_INBOX.mkdir(parents=True, exist_ok=True)
+    (DEMO_INBOX / name).write_bytes(m.as_bytes())
+
+
+def build_demo_inbox():
+    subj = f"Re: {RFQ} — Request for quotation: Bearing assembly"
+    # A: replies to the thread → correlation token
+    _eml("01_vendorA.eml", "Shreeji Sales <sales@shreeji-bearings.example>", _reply_addr("A"), subj,
+         "Mon, 28 Sep 2026 11:42:10 +0530",
+         "Dear Sir,\n\nPlease find our offer attached against your RFQ.\n\nRegards,\nNilesh Patel\nShreeji Bearings",
+         OUT / "vendor_A_Shreeji_offer.xlsx")
+    # B: new email to the generic address, RFQ number in the subject, sender from vendor domain → subject
+    _eml("02_vendorB.eml", "Jürgen Albrecht <j.albrecht@nordlager.example>", "procurement@buyer.example",
+         f"Angebot NL-Q-2026-3318 zu Ihrer Anfrage {RFQ}", "Tue, 29 Sep 2026 09:15:00 +0200",
+         "Dear Sir or Madam,\n\nplease find attached our quotation.\n\nKind regards\nJürgen Albrecht",
+         OUT / "vendor_B_Nordlager_Angebot.pdf")
+    # C: thread reply → token
+    _eml("03_vendorC.eml", "Kaveri Precision <info@kaveriprecision.example>", _reply_addr("C"), subj,
+         "Wed, 30 Sep 2026 16:05:33 +0530", "Sir,\n\nKindly find our offer letter attached.\n\nS. Muthukumar",
+         OUT / "vendor_C_Kaveri_letter.docx")
+    # D: different mailbox at the vendor's domain, no RFQ ref in subject → sender (one open RFQ)
+    _eml("04_vendorD.eml", "PMC Sales Asia <sales.asia@pacificmotion.example>", "procurement@buyer.example",
+         "Quotation PMC-2609-0417 - bearing assemblies", "Tue, 29 Sep 2026 14:30:00 +0800",
+         "Hi,\n\nAttached our best quote. Please revert with PO.\n\nThanks & regards\nMelvin Tan", 
+         OUT / "vendor_D_PacificMotion_quote.xlsx")
+    # E: terse thread reply, no attachment → token
+    _eml("05_vendorE.eml", "Rakesh Jain <rakesh@vardhman-ind.example>", _reply_addr("E"), subj,
+         "Thu, 1 Oct 2026 19:48:02 +0530", (OUT / "vendor_E_Vardhman_email_body.txt").read_text())
+    # F: personal webmail, vague subject, photo of the rate card → no match, goes to Unmatched
+    _eml("06_unknown_sender.eml", "Lakshmi Bearings <lakshmibearings.chn@webmail.example>",
+         "procurement@buyer.example", "rate card", "Thu, 1 Oct 2026 10:02:44 +0530",
+         "Sir, pls find our latest rate card. Regards", OUT / "vendor_F_SriLakshmi_ratecard_photo_SIMULATED.jpg")
+    return sorted(DEMO_INBOX.glob("*.eml"))
+
+
+if __name__ == "__main__":
+    for p in build_demo_inbox():
+        print(p)

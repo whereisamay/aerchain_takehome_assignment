@@ -14,3 +14,13 @@ def current_plan():
     qty = st.session_state.get("machine_qty", DEFAULT_MACHINE_QTY)
     target = st.session_state.get("target_completion", DEFAULT_TARGET)
     return qty, target, compute_demand(qty, target), po_date_for(target)
+
+
+def ensure_rfqs(force: bool = False) -> None:
+    """Generate the 10 RFQs from the current plan if none exist yet (or on demand)."""
+    import db
+    from rfq import build_rfqs
+    if force or not db.list_rfqs():
+        _, _, demand, po = current_plan()
+        for r in build_rfqs(demand, po):
+            db.save_rfq(r, "generated")
