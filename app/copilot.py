@@ -112,7 +112,7 @@ def draft_rfq(history: list[dict], demand: pd.DataFrame | None, po_date: date | 
 def assistant_turn_text(out: dict) -> str:
     """Compact record of the model's last draft, fed back as the assistant turn for follow-ups."""
     return json.dumps({k: out[k] for k in ("reply", "material_code", "variants", "quality_standard",
-                                           "close_date", "notes")})
+                                           "close_date", "notes")}, ensure_ascii=False)
 
 
 __all__ = ["draft_rfq", "assistant_turn_text", "validate_rfq"]
