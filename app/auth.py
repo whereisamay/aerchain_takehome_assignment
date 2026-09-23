@@ -1,4 +1,5 @@
-"""Single shared-password gate. The app holds a live API key, so nothing renders until this passes."""
+"""Optional shared-password gate. If APP_PASSWORD is set in secrets, nothing renders until it is entered;
+if it is not set, the app is open to anyone with the URL."""
 import hmac
 import os
 
@@ -19,23 +20,13 @@ def get_secret(name: str) -> str | None:
     return os.environ.get(name)
 
 
-def _secret_names() -> list[str]:
-    try:
-        return list(st.secrets.keys())
-    except Exception:
-        return []
-
-
 def require_password() -> None:
     if st.session_state.get("authed"):
         return
 
     expected = get_secret("APP_PASSWORD")
     if not expected:
-        names = _secret_names()
-        st.error("APP_PASSWORD is not configured in secrets. Refusing to start.")
-        st.caption(f"Secret names visible to the app: {', '.join(names) if names else 'none'}")
-        st.stop()
+        return
 
     st.title("Kill the Quote Spreadsheet")
     pw = st.text_input("Password", type="password")
