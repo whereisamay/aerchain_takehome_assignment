@@ -6,5 +6,9 @@ from auth import require_password  # noqa: E402
 
 require_password()
 
-st.title("Kill the Quote Spreadsheet")
-st.write("Hello, world. Password gate passed.")
+from views import demand_view  # noqa: E402
+
+pg = st.navigation([
+    st.Page(demand_view.render, title="1 · Demand", url_path="demand", default=True),
+])
+pg.run()
