@@ -149,7 +149,6 @@ def render() -> None:
         _ensure_generated(force=True)
         st.rerun()
 
-    st.divider()
-    _copilot()
-    st.divider()
+    with st.container(border=True):
+        _copilot()
     _editor()
