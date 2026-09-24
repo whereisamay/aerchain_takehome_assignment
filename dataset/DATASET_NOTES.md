@@ -165,3 +165,26 @@ FX the app should state (not the model): **1 USD = 88.40 INR, 1 EUR = 98.10 INR,
 - *Variants with only one viable quote* depend on how strictly "viable" is read. With
   Met + on time + landed, High-speed is thin: A can do only 12 of 20 on time, and C doesn't
   quote it.
+
+## Any other RFQ: the vendor simulator (`vendor_sim/`)
+
+The hand-built files above answer **RFQ-2026-MCH-005 only**. When the buyer sends any other RFQ
+(e.g. all P1 castings), "Simulate vendor replies arriving" runs `vendor_sim/simulate.py`, which
+writes real files for exactly the items on that RFQ, from the same six vendors, each with a
+consistent character. It gives a deliberate mix of strong and weak quotes:
+
+| Vendor | Format | Character → expected reading |
+|---|---|---|
+| A | xlsx, own part codes, reversed order | INR, delivered, 45 days, all standards met, ~5% dearer, lead ≈ 0.85 × typical. Tight windows (≤ 7 days, e.g. P1 under the default plan): **ex-stock** → strong, high confidence |
+| B | letterhead PDF, EUR (German number format) | ex-works, 2/10 net 30 in 5.5pt print, cites **DIN/EN near-equivalents** → Needs review |
+| C | docx prose | **declines the last item**, 50% advance (≈ negative credit), free freight above ₹5 lakh (met or not depending on order value), first certificate **expires 6 days before need-by** → Needs review. Ex-stock on tight windows |
+| D | messy xlsx, header row 7 | USD; parts under ₹20k priced **per pack of 2**; LC at sight (0 days); no freight terms; test reports only, **no ISO 9001 / CE** → Not met |
+| E | two-sentence email | prices only, "dispatch in N weeks", **"same terms as our last order"** → buyer decision; no certs → Not met |
+| F | photographed rate card, from personal webmail (→ Unmatched) | **cheapest (~12% under market)** but 12–13 weeks → late except where need-by is far out (P4 under the default plan) |
+
+The simulator is the vendors' side of the conversation. The app's extraction and normalisation never
+import it (`tests/test_isolation.py`); they only read the files it writes.
+
+**Planning note:** under the default plan (target 10 Feb 2027) P1 materials are needed on the planned
+PO date itself (week 0 of the build). The RFQ Generator warns about this; only ex-stock offers can
+be on time.

@@ -147,14 +147,42 @@ def set_outbox_status(mail_id: int, status: str) -> None:
 
 
 # ------------------------------------------------------------------ inbound
+CURATED_RFQ = "RFQ-2026-MCH-005"
+CURATED_FILES = {"A": "01_vendorA.eml", "B": "02_vendorB.eml", "C": "03_vendorC.eml", "D": "04_vendorD.eml",
+                 "E": "05_vendorE.eml", "F": "06_unknown_sender.eml"}
+
+
 def deliver_demo_replies() -> int:
-    """Stand-in for vendors hitting 'reply': copy the demo vendor emails into the inbox."""
+    """Stand-in for vendors hitting 'reply' to every RFQ that was sent.
+
+    The bearing-only RFQ-2026-MCH-005 gets the hand-built trap dataset. Any other RFQ gets replies
+    written by the vendor simulator (vendor_sim/, outside the app) for exactly the items on that RFQ.
+    Only vendors that were actually sent the RFQ reply."""
+    import sys
+    if str(db.ROOT) not in sys.path:
+        sys.path.append(str(db.ROOT))
+    from vendor_sim.simulate import simulate_replies
+
+    sent: dict[str, set[str]] = {}
+    for o in outbox():
+        if o["kind"] == "rfq":
+            sent.setdefault(o["rfq_id"], set()).add(o["vendor_code"])
     n = 0
-    for f in sorted(DEMO_INBOX.glob("*.eml")):
-        dest = db.INBOX / f.name
-        if not dest.exists():
-            shutil.copy(f, dest)
-            n += 1
+    for rid, codes in sent.items():
+        rfq = db.get_rfq(rid)
+        if not rfq:
+            continue
+        if rid == CURATED_RFQ and {l["material_code"] for l in rfq["lines"]} == {"MAT-005"}:
+            for v in sorted(codes):
+                f = DEMO_INBOX / CURATED_FILES[v]
+                dest = db.INBOX / f.name
+                if f.exists() and not dest.exists():
+                    shutil.copy(f, dest)
+                    n += 1
+            continue
+        po = datetime.fromisoformat(rfq["planned_po_date"]).date() if rfq.get("planned_po_date") else None
+        n += len(simulate_replies(rfq, sorted(codes), {v: reply_address(rid, v) for v in codes},
+                                  po or datetime.now().date(), db.INBOX, db.DATA_DIR / "sim_files"))
     return n
 
 

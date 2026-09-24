@@ -261,13 +261,14 @@ def document_blocks(message: dict) -> tuple[list[dict], list[str]]:
 def _context(rfq: dict, vendor: dict, received: str) -> str:
     lines = "\n".join(f"  [{i}] {l['material']} — variant {l['variant']} — qty {l['qty']} {l['uom']} — need-by "
                       f"{l['need_by']}" for i, l in enumerate(rfq["lines"]))
-    reqs = "\n".join(f"  - {m}: " + "; ".join(p.strip() for p in q.split("+")) for m, q in standards_in(rfq))
+    reqs = "\n".join(f"  - {m}: {p.strip()}" for m, q in standards_in(rfq) for p in q.split("+") if p.strip())
     return f"""RFQ {rfq['rfq_id']} ({rfq['title']}) from {rfq['buyer']['company']}.
 Price basis requested: {rfq['terms']['price_basis']}.
 Credit terms basis requested: {rfq['terms']['credit_terms']}.
 RFQ lines (use these indexes for rfq_line):
 {lines}
-Required quality standards (one cert_assessment entry per item below):
+Required quality standards — one cert_assessment entry per line below, judged separately (a material with two
+requirements gets two entries; "exact" only if that specific requirement is evidenced):
 {reqs}
 The response below was received from vendor {vendor['code']} ({vendor['name']}) on {received}."""
 
@@ -291,7 +292,10 @@ You are a careful reader, not a calculator:
   cover a supplier quality-system requirement such as ISO 9001.
 - If the vendor refers to past dealings instead of stating terms ('same as last order'), record it in
   history_references and leave the affected fields "". Do not resolve it.
-- Read small print, footers and merged cells: terms are often buried there."""
+- Read small print, footers and merged cells: terms are often buried there.
+- A lead time, price basis or other term stated once for the whole document (a footer, a covering note, a
+  "Delivery:" line) applies to every item it covers: record it on each of those items, citing that one source.
+  If it explicitly covers only some item types, apply it only to those."""
 
 
 def extract(message: dict, rfq: dict, vendor: dict, today: date | None = None) -> dict:

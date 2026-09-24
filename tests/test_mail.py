@@ -1,3 +1,4 @@
+import json
 import sys
 from datetime import date
 from email import policy
@@ -94,3 +95,16 @@ def test_uploaded_loose_file_lands_unmatched(sandbox):
     r = mail.ingest_upload("photo.jpg", b"\xff\xd8\xff fake jpeg")
     assert r["status"] == "unmatched"
     assert '"photo.jpg"' in r["attachments"]
+
+
+def test_simulated_replies_answer_whatever_rfq_was_sent(sandbox):
+    demand = compute_demand({"PS-200": 12, "PS-075": 20}, TARGET)
+    rfq = build_rfq(demand, [c for c, m in MATERIALS.items() if m.phase == "P3"], po_date_for(TARGET), set())
+    db.save_rfq(rfq, "generated")
+    mail.send_rfq(rfq, ["A", "C", "E"])  # only the vendors that were sent should reply
+    assert mail.deliver_demo_replies() == 3
+    rows = mail.check_inbox()
+    assert {r["vendor_code"] for r in rows} == {"A", "C", "E"}
+    assert all(r["rfq_id"] == rfq["rfq_id"] and r["match_method"] == "token" for r in rows)
+    a = next(r for r in rows if r["vendor_code"] == "A")
+    assert json.loads(a["attachments"])[0]["name"].endswith(".xlsx")

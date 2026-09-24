@@ -49,6 +49,8 @@ def lead_days(text: str | None) -> tuple[int | None, str | None]:
     """'12-13 weeks' → (91, note). Upper bound of a range, conservatively."""
     if not text:
         return None, None
+    if re.search(r"ex[- ]?stock|from stock|ready stock|immediate", text, re.I) and not re.search(r"\d", text):
+        return 0, f"'{text}' → 0 days (supply from stock)"
     m = re.search(r"(\d+(?:\.\d+)?)\s*(?:(?:-|–|to)\s*(\d+(?:\.\d+)?))?\s*(days?|d\b|weeks?|wks?|w\b|months?|mths?)",
                   text, re.I)
     if not m:

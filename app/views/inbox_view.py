@@ -88,12 +88,13 @@ def render() -> None:
 
     c1, c2, _ = st.columns([2, 1, 3])
     if c1.button("Simulate vendor replies arriving", type="primary",
-                 help="Drops the six demo vendor emails into data/inbox, as if vendors had replied. They answer "
-                      "RFQ-2026-MCH-005 (Bearing assembly)."):
+                 help="Every vendor you sent an RFQ to replies, in its own format. The bearing-only "
+                      "RFQ-2026-MCH-005 gets the hand-built trap dataset; any other RFQ gets replies from the "
+                      "vendor simulator (outside the app) for exactly the items on it."):
         n = mail.deliver_demo_replies()
         mail.check_inbox()
         st.session_state["inbox_toast"] = (f"{n} new message(s) delivered and read" if n
-                                           else "Demo replies were already delivered")
+                                           else "No new replies — send an RFQ first, or they already arrived")
         st.rerun()
     if c2.button("Check inbox"):
         mail.check_inbox()

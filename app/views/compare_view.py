@@ -10,7 +10,7 @@ import sources
 from extract import REVIEW_THRESHOLD
 from llm import model_name
 from master_data import FX_AS_OF, FX_RATES, FX_SOURCE
-from recommend import recommend
+from recommend import verdicts
 from state import DEMO_RFQ, current_plan, ensure_rfqs
 from views.common import vendor_names
 
@@ -117,26 +117,34 @@ def _conf_style(score: float | None) -> str:
     return "background-color: rgba(234, 67, 53, 0.22)"
 
 
-def _matrix(result: dict, single_material: bool):
-    rows = sorted(result["rows"], key=lambda r: (r["line"], r["price_inr"] is None, r["price_inr"] or 0))
+VERDICT_CELL = {"pick": "background-color: rgba(52, 168, 83, 0.22); font-weight: 600",
+                "viable": "", "excluded": "color: #9aa0a6"}
+
+
+def _matrix(result: dict, rfq: dict, single_material: bool, material: str | None):
+    vd = verdicts(result["rows"], rfq)
+    rows = [r for r in result["rows"] if material is None or r["material"] == material]
+    rows = sorted(rows, key=lambda r: (r["line"], vd.get((r["line"], r["vendor"]), {}).get("rank", 99)))
     disp, styles = [], []
     for r in rows:
+        v = vd.get((r["line"], r["vendor"]), {"label": "—", "kind": "excluded"})
         item = r["variant"] if single_material else f"{r['material']} · {r['variant']}".replace(" · —", "")
         credit = ("—" if r["credit_days"] is None else f"{r['credit_days']:g} days") + (
             f" (+{r['discount']})" if r["discount"] else "")
         price = _money(r["price_inr"])
         if r["price_inr"] is not None and r["landed"] is False:
             price += " · ex-works"
-        delivery = "—" if not r["lead_days"] else f"{r['lead_days']} days · {r['delivery']}"
+        delivery = ("—" if r["lead_days"] is None else
+                    ("Ex-stock" if r["lead_days"] == 0 else f"{r['lead_days']} days") + f" · {r['delivery']}")
         disp.append({
-            "Item": item, "Vendor": f"{r['vendor']} · {r['vendor_name']}",
+            "Item": item, "Vendor": f"{r['vendor']} · {r['vendor_name']}", "Recommendation": v["label"],
             "Availability": r["availability"], "Price ₹/unit": price, "Credit period (DSO)": credit,
             "Quality standards met": r["cert"], "Delivery time": delivery, "Reference": r["reference"],
             "Confidence": f"{r['score']:.0%}",
         })
         styles.append({"Availability": r["avail_state"], "Price ₹/unit": r["price_state"],
                        "Credit period (DSO)": r["credit_state"], "Delivery time": r["delivery_state"],
-                       "Quality standards met": r["cert"], "Confidence": r["score"]})
+                       "Quality standards met": r["cert"], "Confidence": r["score"], "Recommendation": v["kind"]})
     df = pd.DataFrame(disp)
     st.session_state["_matrix_rows"] = rows
 
@@ -148,6 +156,8 @@ def _matrix(result: dict, single_material: bool):
                     out.loc[i, col] = VERDICT_STYLE.get(state, "")
                 elif col == "Confidence":
                     out.loc[i, col] = _conf_style(state)
+                elif col == "Recommendation":
+                    out.loc[i, col] = VERDICT_CELL[state]
                 else:
                     out.loc[i, col] = STATE_STYLE[state]
             if str(df.loc[i, "Delivery time"]).split("· ")[-1].startswith("LATE"):
@@ -155,33 +165,6 @@ def _matrix(result: dict, single_material: bool):
         return out
 
     return df, df.style.apply(style, axis=None)
-
-
-def _recommendations(result: dict, rfq: dict, single: bool) -> None:
-    recs = recommend(result["rows"], rfq)
-    if single:
-        items = ", ".join(f"{l['variant']} × {l['qty']}" if l["variant"] != "—" else f"{l['qty']} {l['uom']}"
-                          for l in rfq["lines"])
-        st.markdown(f"This RFQ is for **{rfq['lines'][0]['material']}** — {items}. Suggested vendor per variant:")
-    else:
-        st.markdown(f"This RFQ covers **{len(recs)} materials**. Suggested vendor per material:")
-    for rec in recs:
-        p = rec["pick"]
-        icon = "✅" if rec["status"] == "Recommended" else "⚠️" if p else "⛔"
-        with st.container(border=True):
-            if p:
-                st.markdown(f"{icon} **{rec['item']} → {p['vendor']} · {p['name']}** — {rec['status']}  \n"
-                            f"{rec['why'][0]}")
-            else:
-                st.markdown(f"{icon} **{rec['item']}** — {rec['status']}  \n{rec['why'][0]}")
-            if len(rec["why"]) > 1:
-                with st.expander("Why — full reasoning"):
-                    for w in rec["why"][1:]:
-                        st.markdown(f"- {w}")
-    st.caption("Ranking is plain Python, not the model: exclude vendors that didn't quote, are late against "
-               "need-by, fail a required standard or have no stock; then prefer full quantity, then fewest open "
-               "issues (standard to review, delivery at risk, credit unresolved, price not landed), then lowest "
-               "total cost.")
 
 
 def _trace(row: dict, result: dict) -> None:
@@ -311,15 +294,27 @@ def render() -> None:
     c[3].metric("Buyer decisions", len(result["flags"]))
     _flags(result)
 
-    _recommendations(result, rfq, single)
-
     t1, t2, t3 = st.tabs(["Comparison", f"Review queue ({len(result['queue'])})",
                           f"Assumptions ledger ({len(result['ledger'])})"])
     with t1:
-        df, styled = _matrix(result, single)
-        st.caption(LEGEND)
+        materials = list(dict.fromkeys(l["material"] for l in rfq["lines"]))
+        if single:
+            st.markdown(f"This RFQ is for **{materials[0]}** — "
+                        + ", ".join(f"{l['variant']} × {l['qty']}" if l["variant"] != "—" else f"{l['qty']} {l['uom']}"
+                                    for l in rfq["lines"]) + ". Recommendation is per variant.")
+            material = None
+        else:
+            pickm = st.selectbox("Raw material", ["All materials"] + materials,
+                                 help="Filter the comparison to one raw material. Recommendation is per material.")
+            material = None if pickm == "All materials" else pickm
+        df, styled = _matrix(result, rfq, single, material)
+        st.caption(LEGEND + "  Recommendation is ranked in plain Python: exclude vendors that didn't quote, are "
+                   "late against need-by, fail a required standard or have no stock; then prefer full quantity, "
+                   "fewest open issues, lowest total cost.")
         sel = st.dataframe(styled, hide_index=True, width="stretch", on_select="rerun",
-                           selection_mode="single-row", key="matrix", height=min(40 + 35 * len(df), 720))
+                           selection_mode="single-row", key="matrix", height=min(40 + 35 * len(df), 720),
+                           column_config={"Recommendation": st.column_config.TextColumn(width="medium"),
+                                          "Item": st.column_config.TextColumn(width="medium")})
         st.download_button("Export comparison (xlsx)", _export(df, result), file_name=f"{rid}_comparison.xlsx")
         if sel.selection.rows:
             _trace(st.session_state["_matrix_rows"][sel.selection.rows[0]], result)

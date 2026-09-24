@@ -51,6 +51,12 @@ def _builder() -> None:
                  hide_index=True, width="stretch",
                  column_config={"material": "Material", "variant": "Variant", "qty": "Qty", "uom": "UoM",
                                 "need_by": "Need-by", "phase": "Phase"})
+    tight = sorted({l["material"] for l in preview["lines"]
+                    if (date.fromisoformat(l["need_by"]) - po).days < 14})
+    if tight:
+        st.warning(f"Needed within 2 weeks of the planned PO date ({po:%d %b %Y}): {', '.join(tight)}. Most vendors "
+                   "cannot deliver in that time — expect late quotes, or move the target completion date in the "
+                   "Demand Planner.")
     too_many = len(preview["lines"]) > MAX_ITEMS
     if too_many:
         st.error(f"{len(preview['lines'])} items selected — an RFQ can hold at most {MAX_ITEMS}. Remove some "

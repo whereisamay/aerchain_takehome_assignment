@@ -34,6 +34,7 @@ def test_lead_time_parsing():
     assert lead_days("4 wks")[0] == 28
     assert lead_days("30 days")[0] == 30
     assert lead_days(None) == (None, None)
+    assert lead_days("Ex-stock")[0] == 0 and lead_days("immediately from stock")[0] == 0
 
 
 def test_A_partial_high_speed_landed_45_days():

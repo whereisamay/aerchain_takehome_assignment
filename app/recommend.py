@@ -22,6 +22,8 @@ def _issues(r: dict) -> tuple[list[str], list[str]]:
         hard.append("not available")
     if r["cert"] == "Needs review":
         soft.append(f"standard needs review ({r['cert_detail']})")
+    if r["quoted"] and r["lead_days"] is None:
+        soft.append("lead time not stated")
     if r["delivery_state"] == "review":
         soft.append("delivery at risk (" + (r["delivery"] or "").split("—")[-1].strip() + ")")
     if r["credit_state"] in ("buyer", "missing"):
@@ -96,7 +98,8 @@ def _why(p: dict, viable: list[dict], excluded: list[dict], single: bool) -> lis
                      f"has more open issues: {'; '.join(cheapest_viable['soft']) or 'partial quantity'}.")
     cert = r0["cert"]
     lines.append(f"Quality: {cert}" + (f" — {r0['cert_detail']}" if cert != "Met" else ""))
-    lines.append(f"Delivery: {r0['lead_days']} days → {r0['delivery']}" if r0["lead_days"] else "Delivery: not stated")
+    lines.append(f"Delivery: {r0['lead_days']} days → {r0['delivery']}" if r0["lead_days"] is not None
+                 else "Delivery: not stated")
     avail = "; ".join(sorted({r["availability"] for r in p["rows"]}))
     lines.append(f"Availability: {avail}")
     cd = p["credit"]
@@ -114,3 +117,30 @@ def _why(p: dict, viable: list[dict], excluded: list[dict], single: bool) -> lis
     for c in cheaper_excl:
         lines.append(f"Not {c['vendor']} (₹{c['total']:,.0f}, cheaper): {c['hard'][0]}")
     return lines
+
+
+def verdicts(rows: list[dict], rfq: dict) -> dict[tuple[int, str], dict]:
+    """Per (item index, vendor): a short verdict for the comparison table, plus a sort rank.
+    Single-material RFQ: judged per variant. Multi-material: per material (all its variants together)."""
+    out = {}
+    for rec in recommend(rows, rfq):
+        ranked = rec["viable"] + rec["excluded"]
+        for rank, c in enumerate(ranked):
+            if c is rec["pick"]:
+                label = "✅ Recommended" if not c["soft"] and not c["partial"] else \
+                    "✅ Best available — " + (c["soft"][0] if c["soft"] else "partial quantity")
+                kind = "pick"
+            elif not c["hard"]:
+                d = c["total"] - rec["pick"]["total"] if rec["pick"] else 0
+                bits = [f"₹{abs(d):,.0f} {'dearer' if d >= 0 else 'cheaper'}"] if rec["pick"] else []
+                if c["partial"]:
+                    bits.append("partial quantity")
+                bits += c["soft"][:1]
+                label = f"Viable #{rank + 1} — " + "; ".join(bits)
+                kind = "viable"
+            else:
+                label = "⛔ " + c["hard"][0][0].upper() + c["hard"][0][1:]
+                kind = "excluded"
+            for r in c["rows"]:
+                out[(r["line"], r["vendor"])] = {"label": label, "kind": kind, "rank": rank}
+    return out

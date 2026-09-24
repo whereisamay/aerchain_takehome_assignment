@@ -5,3 +5,4 @@ __pycache__/
 data/app.db
 data/inbox/
 data/outbox/
+data/sim_files/
