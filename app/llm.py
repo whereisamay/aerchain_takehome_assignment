@@ -6,7 +6,7 @@ import jsonschema
 
 from auth import get_secret
 
-DEFAULT_MODEL = "claude-opus-5"
+DEFAULT_MODEL = "claude-sonnet-5"
 
 
 class LLMError(RuntimeError):
