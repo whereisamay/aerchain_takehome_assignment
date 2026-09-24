@@ -51,15 +51,24 @@ NEAR_EQUIV = {"ISO 15243": "DIN 628", "IS 210 Gr FG260": "EN-GJL-250 (EN 1561)",
               "IS 2062": "EN 10025", "API 682 4th ed.": "EN 12756", "IS 12615": "IEC 60034-1",
               "IS 305": "DIN EN 1982 CuAl10Fe5Ni5", "IS 1367 property class 8.8": "DIN EN ISO 898-1 8.8"}
 
+FONT_DIR = Path(__file__).resolve().parent / "fonts"  # bundled: hosts (e.g. Streamlit Cloud) lack DejaVu
+FONT, FONT_B = "Helvetica", "Helvetica-Bold"  # replaced by DejaVu (which has the ₹ glyph) once registered
+RUPEE = "Rs."
 _fonts_ready = False
 
 
 def _fonts():
-    global _fonts_ready
-    if not _fonts_ready:
-        pdfmetrics.registerFont(TTFont("DejaVu", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
-        pdfmetrics.registerFont(TTFont("DejaVu-Bold", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"))
-        _fonts_ready = True
+    """Use the bundled DejaVu fonts; if they cannot be loaded, fall back to built-in Helvetica and 'Rs.'."""
+    global _fonts_ready, FONT, FONT_B, RUPEE
+    if _fonts_ready:
+        return
+    try:
+        pdfmetrics.registerFont(TTFont("DejaVu", str(FONT_DIR / "DejaVuSans.ttf")))
+        pdfmetrics.registerFont(TTFont("DejaVu-Bold", str(FONT_DIR / "DejaVuSans-Bold.ttf")))
+        FONT, FONT_B, RUPEE = "DejaVu", "DejaVu-Bold", "₹"
+    except Exception:  # noqa: BLE001
+        pass
+    _fonts_ready = True
 
 
 def _rng(*parts) -> random.Random:
@@ -158,20 +167,20 @@ def _vendor_b(rfq, items, po, out: Path) -> Path:
     p = out / f"vendor_B_Nordlager_Angebot_{rfq['rfq_id']}.pdf"
     doc = SimpleDocTemplate(str(p), pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm, topMargin=15 * mm,
                             bottomMargin=15 * mm)
-    s = lambda size, font="DejaVu", color=colors.black, lead=None: ParagraphStyle(  # noqa: E731
-        "x", fontName=font, fontSize=size, textColor=color, leading=lead or size * 1.3)
-    story = [Paragraph("NORDLAGER", s(24, "DejaVu-Bold", colors.HexColor("#0B4F8A"))),
+    s = lambda size, font=None, color=colors.black, lead=None: ParagraphStyle(  # noqa: E731
+        "x", fontName=font or FONT, fontSize=size, textColor=color, leading=lead or size * 1.3)
+    story = [Paragraph("NORDLAGER", s(24, FONT_B, colors.HexColor("#0B4F8A"))),
              Paragraph("Antriebstechnik GmbH · Heilbronner Straße 211 · 70191 Stuttgart", s(8, color=colors.grey)),
              Spacer(1, 8 * mm),
              Paragraph(f"<b>Angebot / Quotation NL-Q-2026-{_rng(rfq['rfq_id'], 'B').randint(3000, 3999)}</b> — "
-                       f"your enquiry {rfq['rfq_id']}", s(12, "DejaVu-Bold")),
+                       f"your enquiry {rfq['rfq_id']}", s(12, FONT_B)),
              Spacer(1, 4 * mm)]
     data = [["Pos.", "Description", "Qty", "Unit price EUR", "Total EUR"]]
     for n, it in enumerate(items, 1):
         eur = round(_price(it, "B", rfq["rfq_id"]) / EUR, 2)
         data.append([str(n * 10), Paragraph(_label(it), s(8.5)), str(it["qty"]), _de(eur), _de(eur * it["qty"])])
     t = Table(data, colWidths=[12 * mm, 90 * mm, 14 * mm, 28 * mm, 28 * mm])
-    t.setStyle(TableStyle([("FONT", (0, 0), (-1, -1), "DejaVu", 8.5), ("FONT", (0, 0), (-1, 0), "DejaVu-Bold", 8.5),
+    t.setStyle(TableStyle([("FONT", (0, 0), (-1, -1), FONT, 8.5), ("FONT", (0, 0), (-1, 0), FONT_B, 8.5),
                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#DCE6F2")),
                            ("GRID", (0, 0), (-1, -1), 0.4, colors.grey), ("ALIGN", (2, 0), (-1, -1), "RIGHT")]))
     weeks = max(_weeks_for(it["material_code"], "B", (date.fromisoformat(it["need_by"]) - po).days)[1]
@@ -284,21 +293,21 @@ def _vendor_f(rfq, items, po, out: Path) -> Path:
     _fonts()
     pdf = out / f"vendor_F_ratecard_{rfq['rfq_id']}.pdf"
     doc = SimpleDocTemplate(str(pdf), pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm, topMargin=14 * mm)
-    s = lambda size, font="DejaVu": ParagraphStyle("x", fontName=font, fontSize=size, leading=size * 1.35)  # noqa
-    rows = [["SKU", "Description", "Rate ₹ / pc"]]
+    s = lambda size, font=None: ParagraphStyle("x", fontName=font or FONT, fontSize=size, leading=size * 1.35)  # noqa
+    rows = [["SKU", "Description", f"Rate {RUPEE} / pc"]]
     distract = [("SL-X6205", "Light duty DGBB assembly", 650), ("SL-X51110", "Thrust ball bearing assembly", 890)]
     for it in items:
         rows.append([f"SL-{it['material_code'][-3:]}{(it['variant'][:1] if it['variant'] != '—' else 'G')}",
                      _label(it), f"{_price(it, 'F', rfq['rfq_id']):,.0f}"])
     rows += [[a, b, f"{c:,}"] for a, b, c in distract]
     t = Table(rows, colWidths=[30 * mm, 100 * mm, 34 * mm])
-    t.setStyle(TableStyle([("FONT", (0, 0), (-1, -1), "DejaVu", 10), ("FONT", (0, 0), (-1, 0), "DejaVu-Bold", 10),
+    t.setStyle(TableStyle([("FONT", (0, 0), (-1, -1), FONT, 10), ("FONT", (0, 0), (-1, 0), FONT_B, 10),
                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F4D6D6")),
                            ("GRID", (0, 0), (-1, -1), 0.6, colors.black), ("ALIGN", (2, 0), (2, -1), "RIGHT"),
                            ("TOPPADDING", (0, 0), (-1, -1), 5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5)]))
-    story = [Paragraph("SRI LAKSHMI BEARING HOUSE", s(20, "DejaVu-Bold")),
+    story = [Paragraph("SRI LAKSHMI BEARING HOUSE", s(20, FONT_B)),
              Paragraph("Authorised Stockist & Assembler · Parrys, Chennai 600001", s(8.5)), Spacer(1, 4 * mm),
-             Paragraph("RATE CARD (Effective 1 September 2026)", s(13, "DejaVu-Bold")), Spacer(1, 3 * mm), t,
+             Paragraph("RATE CARD (Effective 1 September 2026)", s(13, FONT_B)), Spacer(1, 3 * mm), t,
              Spacer(1, 5 * mm)]
     lo, hi = max((_weeks_for(it["material_code"], "F", (date.fromisoformat(it["need_by"]) - po).days)
                   for it in items), key=lambda x: x[1])

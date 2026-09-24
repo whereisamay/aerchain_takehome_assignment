@@ -101,10 +101,12 @@ def test_simulated_replies_answer_whatever_rfq_was_sent(sandbox):
     demand = compute_demand({"PS-200": 12, "PS-075": 20}, TARGET)
     rfq = build_rfq(demand, [c for c, m in MATERIALS.items() if m.phase == "P3"], po_date_for(TARGET), set())
     db.save_rfq(rfq, "generated")
-    mail.send_rfq(rfq, ["A", "C", "E"])  # only the vendors that were sent should reply
-    assert mail.deliver_demo_replies() == 3
+    mail.send_rfq(rfq, ["A", "B", "C", "E", "F"])  # only the vendors that were sent should reply (not D)
+    assert mail.deliver_demo_replies() == 5
     rows = mail.check_inbox()
-    assert {r["vendor_code"] for r in rows} == {"A", "C", "E"}
-    assert all(r["rfq_id"] == rfq["rfq_id"] and r["match_method"] == "token" for r in rows)
+    matched = {r["vendor_code"] for r in rows if r["status"] == "matched"}
+    assert matched == {"A", "B", "C", "E"} and all(r["rfq_id"] == rfq["rfq_id"] for r in rows if r["vendor_code"])
+    assert sum(r["status"] == "unmatched" for r in rows) == 1  # F writes from personal webmail
+    assert any(json.loads(r["attachments"])[0]["name"].endswith(".pdf") for r in rows if r["vendor_code"] == "B")
     a = next(r for r in rows if r["vendor_code"] == "A")
     assert json.loads(a["attachments"])[0]["name"].endswith(".xlsx")
