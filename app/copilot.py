@@ -74,6 +74,8 @@ Rules:
 - Default close date: 5 days before the planned PO date, and never earlier than 3 days from today.
 - If the request is ambiguous (which materials? which variants?) make the most reasonable draft and put the question in open_questions. Never invent a material or variant that is not in the master.
 - Omit lines with zero quantity.
+- An RFQ holds at most 8 lines. If the request needs more, draft the first 8 in phase order and say in
+  open_questions which materials should go on a second RFQ.
 - If the buyer is refining an earlier draft, return the full updated RFQ, not just the change.
 - notes: only vendor-facing requirements the buyer actually stated (packaging, inspection, delivery split, etc.).
 - reply: two or three sentences, plain English."""

@@ -56,6 +56,11 @@ def delete_rfq(rfq_id: str) -> None:
         c.execute("DELETE FROM rfqs WHERE rfq_id=?", (rfq_id,))
 
 
+def delete_all_rfqs() -> None:
+    with connect() as c:
+        c.execute("DELETE FROM rfqs")
+
+
 def purge_legacy_rfqs() -> None:
     with connect() as c:
         for r in c.execute("SELECT rfq_id, body FROM rfqs").fetchall():

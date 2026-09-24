@@ -10,6 +10,7 @@ import sources
 from extract import REVIEW_THRESHOLD
 from llm import model_name
 from master_data import FX_AS_OF, FX_RATES, FX_SOURCE
+from recommend import recommend
 from state import DEMO_RFQ, current_plan, ensure_rfqs
 from views.common import vendor_names
 
@@ -22,9 +23,10 @@ STATE_STYLE = {
 }
 VERDICT_STYLE = {"Met": "color: #1e8e3e; font-weight: 600", "Needs review": "color: #b06000; font-weight: 600",
                  "Not met": "color: #d93025; font-weight: 600"}
-LEGEND = ("⬜ clean — stated, read with confidence · 🟦 assumed — converted or assumption logged · "
+LEGEND = ("Cells: ⬜ clean — stated, read with confidence · 🟦 assumed — converted or assumption logged · "
           "🟨 needs review — low confidence or a judgement call · 🟪 buyer must decide · "
-          "⬛ missing — the vendor didn't say (shown as —, never 0)")
+          "⬛ missing — the vendor didn't say (shown as —, never 0).  Confidence = mean over these six "
+          "parameters of (model read confidence × state: clean 1, assumed 0.85, review 0.6, buyer 0.3, missing 0).")
 
 
 def _money(x) -> str:
@@ -105,43 +107,89 @@ def _flags(result: dict) -> None:
             st.rerun()
 
 
-def _matrix(result: dict, single_material: bool) -> pd.DataFrame:
+def _conf_style(score: float | None) -> str:
+    if score is None:
+        return STATE_STYLE["missing"]
+    if score >= 0.85:
+        return "background-color: rgba(52, 168, 83, 0.18)"
+    if score >= 0.65:
+        return STATE_STYLE["review"]
+    return "background-color: rgba(234, 67, 53, 0.22)"
+
+
+def _matrix(result: dict, single_material: bool):
     rows = sorted(result["rows"], key=lambda r: (r["line"], r["price_inr"] is None, r["price_inr"] or 0))
     disp, styles = [], []
     for r in rows:
         item = r["variant"] if single_material else f"{r['material']} · {r['variant']}".replace(" · —", "")
-        credit = ("—" if r["credit_days"] is None else f"{r['credit_days']:g} d") + (
+        credit = ("—" if r["credit_days"] is None else f"{r['credit_days']:g} days") + (
             f" (+{r['discount']})" if r["discount"] else "")
+        price = _money(r["price_inr"])
+        if r["price_inr"] is not None and r["landed"] is False:
+            price += " · ex-works"
+        delivery = "—" if not r["lead_days"] else f"{r['lead_days']} days · {r['delivery']}"
         disp.append({
-            "Line": item, "Vendor": r["vendor"], "Price ₹/unit": _money(r["price_inr"]),
-            "Quality": r["cert"], "Delivery vs need-by": r["delivery"] or "—",
-            "Availability": r["availability"], "Credit": credit, "Freight": r["freight"],
-            "Quoted as": r["price_original"] or "—", "Reference": r["reference"], "Qty req.": r["qty_required"],
-            "Confidence": "—" if r["confidence"] is None else f"{r['confidence']:.0%}",
+            "Item": item, "Vendor": f"{r['vendor']} · {r['vendor_name']}",
+            "Availability": r["availability"], "Price ₹/unit": price, "Credit period (DSO)": credit,
+            "Quality standards met": r["cert"], "Delivery time": delivery, "Reference": r["reference"],
+            "Confidence": f"{r['score']:.0%}",
         })
-        styles.append({"Price ₹/unit": r["price_state"], "Quoted as": r["price_state"],
-                       "Availability": r["avail_state"], "Delivery vs need-by": r["delivery_state"],
-                       "Credit": r["credit_state"], "Freight": r["freight_state"], "Confidence": r["row_state"],
-                       "Quality": r["cert"]})
+        styles.append({"Availability": r["avail_state"], "Price ₹/unit": r["price_state"],
+                       "Credit period (DSO)": r["credit_state"], "Delivery time": r["delivery_state"],
+                       "Quality standards met": r["cert"], "Confidence": r["score"]})
     df = pd.DataFrame(disp)
     st.session_state["_matrix_rows"] = rows
 
     def style(_):
         out = pd.DataFrame("", index=df.index, columns=df.columns)
-        for i, s in enumerate(styles):
-            for col, state in s.items():
-                out.loc[i, col] = VERDICT_STYLE.get(state, "") if col == "Quality" else STATE_STYLE[state]
-            if str(df.loc[i, "Delivery vs need-by"]).startswith("LATE"):
-                out.loc[i, "Delivery vs need-by"] += "; color: #d93025; font-weight: 600"
+        for i, st_ in enumerate(styles):
+            for col, state in st_.items():
+                if col == "Quality standards met":
+                    out.loc[i, col] = VERDICT_STYLE.get(state, "")
+                elif col == "Confidence":
+                    out.loc[i, col] = _conf_style(state)
+                else:
+                    out.loc[i, col] = STATE_STYLE[state]
+            if str(df.loc[i, "Delivery time"]).split("· ")[-1].startswith("LATE"):
+                out.loc[i, "Delivery time"] += "; color: #d93025; font-weight: 600"
         return out
 
     return df, df.style.apply(style, axis=None)
+
+
+def _recommendations(result: dict, rfq: dict, single: bool) -> None:
+    recs = recommend(result["rows"], rfq)
+    if single:
+        items = ", ".join(f"{l['variant']} × {l['qty']}" if l["variant"] != "—" else f"{l['qty']} {l['uom']}"
+                          for l in rfq["lines"])
+        st.markdown(f"This RFQ is for **{rfq['lines'][0]['material']}** — {items}. Suggested vendor per variant:")
+    else:
+        st.markdown(f"This RFQ covers **{len(recs)} materials**. Suggested vendor per material:")
+    for rec in recs:
+        p = rec["pick"]
+        icon = "✅" if rec["status"] == "Recommended" else "⚠️" if p else "⛔"
+        with st.container(border=True):
+            if p:
+                st.markdown(f"{icon} **{rec['item']} → {p['vendor']} · {p['name']}** — {rec['status']}  \n"
+                            f"{rec['why'][0]}")
+            else:
+                st.markdown(f"{icon} **{rec['item']}** — {rec['status']}  \n{rec['why'][0]}")
+            if len(rec["why"]) > 1:
+                with st.expander("Why — full reasoning"):
+                    for w in rec["why"][1:]:
+                        st.markdown(f"- {w}")
+    st.caption("Ranking is plain Python, not the model: exclude vendors that didn't quote, are late against "
+               "need-by, fail a required standard or have no stock; then prefer full quantity, then fewest open "
+               "issues (standard to review, delivery at risk, credit unresolved, price not landed), then lowest "
+               "total cost.")
 
 
 def _trace(row: dict, result: dict) -> None:
     doc = result["docs"][row["mail_id"]]
     msg, raw = doc["msg"], doc["raw"]
     st.markdown(f"#### Source trace — Vendor {row['vendor']} · {row['material']} · {row['variant']}")
+    st.caption(f"Freight: {row['freight']} · Quoted as: {row['price_original'] or '—'} · "
+               f"Qty required: {row['qty_required']}")
     st.caption(f"Document(s): {', '.join(doc['ext']['meta']['documents'])} · extracted by "
                f"{doc['ext']['meta']['model']} in {doc['ext']['meta']['seconds']} s · mapping {row['mapping'] or '—'}")
     labels = {"unit_price": "Unit price", "currency": "Currency", "units_per_price": "Units per priced unit",
@@ -258,10 +306,12 @@ def render() -> None:
                "quoted lead time.")
     c = st.columns(4)
     c[0].metric("Responses analysed", len(result["docs"]))
-    c[1].metric("Vendor × line rows", len(result["rows"]))
+    c[1].metric("Quotes compared", sum(1 for r in result["rows"] if r["quoted"]))
     c[2].metric("Needs review", len(result["queue"]))
     c[3].metric("Buyer decisions", len(result["flags"]))
     _flags(result)
+
+    _recommendations(result, rfq, single)
 
     t1, t2, t3 = st.tabs(["Comparison", f"Review queue ({len(result['queue'])})",
                           f"Assumptions ledger ({len(result['ledger'])})"])

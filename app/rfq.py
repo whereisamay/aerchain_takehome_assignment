@@ -25,6 +25,8 @@ STANDARD_TERMS = {
 }
 
 MULTI_START = 101
+# Cap per RFQ: each item adds to what the model must read and return per vendor response.
+MAX_ITEMS = 8
 
 
 def default_close_date(po_date: date, today: date | None = None) -> date:
@@ -102,23 +104,25 @@ def validate_rfq(rfq: dict) -> list[str]:
     """Problems a buyer must fix before the RFQ can be exported or sent. Empty list = ok."""
     problems = []
     if not rfq.get("lines"):
-        return ["No line items"]
+        return ["No items"]
+    if len(rfq["lines"]) > MAX_ITEMS:
+        problems.append(f"{len(rfq['lines'])} items — an RFQ can hold at most {MAX_ITEMS}. Split it into two RFQs.")
     for i, l in enumerate(rfq["lines"], 1):
         m = MATERIALS.get(l.get("material_code", ""))
         if not m:
-            problems.append(f"Line {i}: unknown material {l.get('material_code')!r}")
+            problems.append(f"Item {i}: unknown material {l.get('material_code')!r}")
             continue
         if l.get("variant") not in m.variants:
-            problems.append(f"Line {i}: {l.get('variant')!r} is not a variant of {m.name} ({', '.join(m.variants)})")
+            problems.append(f"Item {i}: {l.get('variant')!r} is not a variant of {m.name} ({', '.join(m.variants)})")
         if not isinstance(l.get("qty"), int) or l["qty"] <= 0:
-            problems.append(f"Line {i}: quantity must be a positive whole number")
+            problems.append(f"Item {i}: quantity must be a positive whole number")
         try:
             date.fromisoformat(l.get("need_by", ""))
         except (TypeError, ValueError):
-            problems.append(f"Line {i}: need-by date is not a valid date")
+            problems.append(f"Item {i}: need-by date is not a valid date")
     keys = [(l.get("material_code"), l.get("variant")) for l in rfq["lines"]]
     if len(keys) != len(set(keys)):
-        problems.append("The same material and variant appears on more than one line")
+        problems.append("The same material and variant appears twice")
     try:
         date.fromisoformat(rfq.get("close_date", ""))
     except (TypeError, ValueError):

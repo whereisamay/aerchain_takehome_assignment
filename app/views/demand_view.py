@@ -4,36 +4,45 @@ import pandas as pd
 import streamlit as st
 
 from demand import compute_demand, po_date_for
-from state import DEFAULT_MACHINE_QTY, DEFAULT_TARGET
 from master_data import BOM, BUILD_WEEKS, MACHINES, MATERIALS, PHASES
+from state import DEFAULT_MACHINE_QTY, DEFAULT_TARGET
+
+
+def _reset() -> None:
+    for m in MACHINES:
+        st.session_state[f"dq_{m}"] = 0
+    st.session_state["dq_target"] = DEFAULT_TARGET
+    st.session_state["machine_qty"] = {m: 0 for m in MACHINES}
+    st.session_state["target_completion"] = DEFAULT_TARGET
 
 
 def render() -> None:
     st.header("Demand Planner")
     st.caption("Machine build plan → material demand by phase, with need-by dates. Deterministic, no AI.")
 
+    saved = st.session_state.get("machine_qty", DEFAULT_MACHINE_QTY)
+    for m in MACHINES:
+        st.session_state.setdefault(f"dq_{m}", saved.get(m, 0))
+    st.session_state.setdefault("dq_target", st.session_state.get("target_completion", DEFAULT_TARGET))
+
     with st.form("demand_form"):
         cols = st.columns(len(MACHINES) + 1)
-        machine_qty = {}
-        for col, m in zip(cols, MACHINES.values()):
-            machine_qty[m.code] = col.number_input(
-                f"{m.code} — {m.name}", min_value=0, step=1,
-                value=st.session_state.get("machine_qty", DEFAULT_MACHINE_QTY).get(m.code, 0))
-        target = cols[-1].date_input("Target completion date",
-                                     value=st.session_state.get("target_completion", DEFAULT_TARGET))
-        include_zero = st.checkbox("Show variants with zero demand")
+        machine_qty = {m.code: col.number_input(f"{m.code} — {m.name}", min_value=0, step=1, key=f"dq_{m.code}")
+                       for col, m in zip(cols, MACHINES.values())}
+        target = cols[-1].date_input("Target completion date", key="dq_target")
         st.form_submit_button("Calculate demand", type="primary")
+    st.button("Reset to zero", on_click=_reset)
 
     st.session_state["machine_qty"] = machine_qty
     st.session_state["target_completion"] = target
 
     po = po_date_for(target)
-    df = compute_demand(machine_qty, target, include_zero=include_zero)
+    df = compute_demand(machine_qty, target)
 
     c1, c2, c3 = st.columns(3)
     c1.metric("Latest PO date", po.strftime("%d %b %Y"))
     c2.metric("Build duration", f"{BUILD_WEEKS} weeks")
-    c3.metric("Demand lines", len(df))
+    c3.metric("Items needed", len(df))
     if po < date.today():
         st.warning(f"Latest PO date {po:%d %b %Y} is already in the past — the target completion is not achievable.")
 

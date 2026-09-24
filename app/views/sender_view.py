@@ -16,7 +16,15 @@ def render() -> None:
     st.header("RFQ Sender")
     transport_note()
     ensure_rfqs()
+    if st.button("Clear sent history", help="Remove every RFQ email sent so far (the outbox)."):
+        mail.reset_outbox()
+        st.toast("Sent history cleared")
+        st.rerun()
     rfqs = db.list_rfqs()
+    if not rfqs:
+        st.info("No RFQs yet — create one in the RFQ Generator. (The demo vendor replies answer "
+                "RFQ-2026-MCH-005: an RFQ with Bearing assembly only.)")
+        return
     ids = [r["rfq_id"] for r in rfqs]
     rid = st.selectbox("RFQ to send", ids, index=ids.index(DEMO_RFQ) if DEMO_RFQ in ids else 0,
                        format_func=lambda i: f"{i} · {next(r['title'] for r in rfqs if r['rfq_id'] == i)}")
@@ -29,12 +37,9 @@ def render() -> None:
 
     st.markdown("**Vendors**")
     vs = vendors.list_vendors()
-    sent_to = {o["vendor_code"] for o in mail.outbox() if o["rfq_id"] == rid and o["kind"] == "rfq"}
     table = pd.DataFrame([{
-        "Send": v["code"] not in sent_to, "Vendor": v["code"], "Name": v["name"], "City": v["city"],
-        "Email": v["email"], "Reference": ("Yes — " + v["referred_by"]) if v["has_reference"] else "No",
-        "Supplied since": v["supplied_since"] or "—",
-        "Already sent": "✓" if v["code"] in sent_to else "",
+        "Send": True, "Vendor": v["code"], "Name": v["name"], "City": v["city"], "Email": v["email"],
+        "Reference": ("Yes — " + v["referred_by"]) if v["has_reference"] else "No",
     } for v in vs])
     picked = st.data_editor(table, hide_index=True, width="stretch", disabled=[c for c in table if c != "Send"],
                             key=f"pick_{rid}")

@@ -36,6 +36,15 @@ def _worst(*states: str) -> str:
     return max(states, key=lambda s: STATE_RANK[s]) if states else "clean"
 
 
+STATE_FACTOR = {"clean": 1.0, "assumed": 0.85, "review": 0.6, "buyer": 0.3, "missing": 0.0}
+
+
+def param_score(params: dict) -> float:
+    """Confidence over the six comparison parameters only: mean of (model read confidence × state factor).
+    A parameter the vendor didn't state scores 0; one the buyer must decide scores low."""
+    return sum(conf * STATE_FACTOR[state] for state, conf in params.values()) / len(params)
+
+
 def lead_days(text: str | None) -> tuple[int | None, str | None]:
     """'12-13 weeks' → (91, note). Upper bound of a range, conservatively."""
     if not text:
@@ -355,6 +364,25 @@ def normalise(ext: dict, rfq: dict, vendor: dict, history: list[dict], po_date: 
             log("Volume discount", f"'{vd['text']['value']}' — order ≈ INR {order_value_inr:,.0f} vs threshold "
                                    f"{_fmt_money(t, tc)} (≈ INR {t * FX_RATES[tc]:,.0f}): "
                                    f"{'applies — not deducted, shown for negotiation' if met else 'does NOT apply'}.")
+    cert_conf = [float(c["vendor_standard"]["confidence"]) for c in ext["cert_assessment"]
+                 if c["vendor_standard"]["value"]] or [1.0]
+    credit_conf = float(cr["text"]["confidence"] or 0) if cr["text"]["value"] else 1.0
+    for row in rows:
+        f = row["fields"]
+
+        def c(*keys):
+            vals = [float(f[k]["confidence"]) for k in keys if k in f and f[k].get("value")]
+            return min(vals) if vals else 1.0
+        cert_state = {"Met": "clean", "Needs review": "review", "Not met": "clean"}[row["cert"]]
+        row["params"] = {
+            "Price": (row["price_state"], c("unit_price", "currency", "units_per_price")),
+            "Availability": (row["avail_state"], c("qty_offered", "availability")),
+            "Credit period": (row["credit_state"], credit_conf),
+            "Quality": (cert_state, min(cert_conf)),
+            "Delivery": (row["delivery_state"], c("lead_time", "lead_time_basis")),
+            "Reference": ("clean", 1.0),
+        }
+        row["score"] = param_score(row["params"])
     return {"rows": rows, "ledger": ledger, "flags": flags,
             "vendor_summary": {"vendor": code, "order_value_inr": order_value_inr, "landed": landed,
                                "credit_days": credit_days, "discount": discount}}

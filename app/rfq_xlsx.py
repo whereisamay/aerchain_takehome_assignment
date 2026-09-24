@@ -49,7 +49,7 @@ def _terms_sheet(wb: Workbook, rfq: dict) -> None:
     mats = standards_in(rfq)
     rows = [
         ("RFQ reference", rfq["rfq_id"]),
-        ("Scope", f"{rfq['title']} — {len(rfq['lines'])} line(s), see sheet 2"),
+        ("Scope", f"{rfq['title']} — {len(rfq['lines'])} item(s), see sheet 2"),
         ("Quality standards required", "\n".join(f"{m}: {q}" for m, q in mats)),
         ("Specification notes", "\n".join(f"{MATERIALS[c].name}: {MATERIALS[c].spec_notes}"
                                            for c in materials_in(rfq) if MATERIALS[c].spec_notes) or "—"),
@@ -93,7 +93,7 @@ def _terms_sheet(wb: Workbook, rfq: dict) -> None:
     ws.column_dimensions["B"].width = 95
 
 
-LINE_HEADERS = ["Line", "Material", "Variant", "Qty required", "UoM", "Need-by date",
+LINE_HEADERS = ["Item", "Material", "Variant", "Qty required", "UoM", "Need-by date",
                 "Your part no.", "Unit price", "Currency", "Price is per (unit basis)",
                 "Freight included?", "Qty you can supply", "Availability",
                 "Delivery (days from PO)", "Remarks"]
@@ -101,8 +101,8 @@ LINE_INPUT_FROM = 7  # 1-indexed column where vendor inputs start
 
 
 def _lines_sheet(wb: Workbook, rfq: dict) -> None:
-    ws = wb.create_sheet("Line items")
-    r = _title(ws, rfq, "Sheet 2 of 3 — one row per variant. Fill the shaded columns.")
+    ws = wb.create_sheet("Items")
+    r = _title(ws, rfq, "Sheet 2 of 3 — one row per item. Fill the shaded columns.")
     _header_row(ws, r, LINE_HEADERS, input_from=LINE_INPUT_FROM)
     ws.row_dimensions[r].height = 32
     first = r + 1

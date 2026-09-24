@@ -88,7 +88,8 @@ def render() -> None:
 
     c1, c2, _ = st.columns([2, 1, 3])
     if c1.button("Simulate vendor replies arriving", type="primary",
-                 help="Drops the six demo vendor emails into data/inbox, as if vendors had replied."):
+                 help="Drops the six demo vendor emails into data/inbox, as if vendors had replied. They answer "
+                      "RFQ-2026-MCH-005 (Bearing assembly)."):
         n = mail.deliver_demo_replies()
         mail.check_inbox()
         st.session_state["inbox_toast"] = (f"{n} new message(s) delivered and read" if n
@@ -110,7 +111,6 @@ def render() -> None:
             "RFQ": r["rfq_id"] or "—", "From": r["from_addr"], "Subject": r["subject"],
             "Format": ", ".join(a["name"].rsplit(".", 1)[-1].upper() for a in r["attachments"]) or "email body",
             "Attachments": ", ".join(a["name"] for a in r["attachments"]) or "—",
-            "Matched by": METHOD_LABEL.get(r["match_method"], r["match_method"]),
         } for r in rows]), hide_index=True, width="stretch")
         st.caption("Correlation order: ① token in the reply-to address → ② RFQ reference in the subject (vendor "
                    "from sender) → ③ sender address, only when exactly one RFQ is open with that vendor. "

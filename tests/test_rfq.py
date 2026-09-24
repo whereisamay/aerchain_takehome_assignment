@@ -38,12 +38,21 @@ def test_all_p1_parts_on_one_rfq():
     assert build_rfq(DEMAND, p1, PO, {"RFQ-2026-MCH-101"}, today=TODAY)["rfq_id"] == "RFQ-2026-MCH-102"
 
 
-def test_everything_generates_and_exports():
+def test_item_cap():
     rfq = build_rfq(DEMAND, list(MATERIALS), PO, set(), today=TODAY)
     assert len(rfq["lines"]) == 14
+    assert any("at most 8" in p for p in validate_rfq(rfq))
+    for phase in ("P1", "P2", "P3", "P4"):  # every phase grouping fits
+        codes = [c for c, m in MATERIALS.items() if m.phase == phase]
+        assert validate_rfq(build_rfq(DEMAND, codes, PO, set(), today=TODAY)) == []
+
+
+def test_everything_generates_and_exports():
+    rfq = build_rfq(DEMAND, list(MATERIALS), PO, set(), today=TODAY)
     wb = load_workbook(BytesIO(render_rfq_xlsx(rfq)))
-    assert wb.sheetnames == ["Terms", "Line items", "Certifications"]
-    ws = wb["Line items"]
+    assert wb.sheetnames == ["Terms", "Items", "Certifications"]
+    ws = wb["Items"]
+    assert ws.cell(row=6, column=1).value == "Item"
     assert ws.cell(row=6, column=2).value == "Material"
     assert ws.cell(row=7, column=2).value == "Pump casing, cast iron"
     assert ws.cell(row=7, column=8).fill.fgColor.rgb.endswith("FFF2CC")  # unit price is a shaded input
@@ -59,4 +68,4 @@ def test_validation_catches_bad_edits():
     problems = validate_rfq(rfq)
     assert any("Ceramic" in p for p in problems)
     assert any("positive" in p for p in problems)
-    assert any("more than one line" in p for p in problems)
+    assert any("appears twice" in p for p in problems)

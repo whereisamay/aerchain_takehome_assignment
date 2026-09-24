@@ -8,7 +8,7 @@ import db
 from copilot import assistant_turn_text, draft_rfq
 from llm import LLMError, model_name
 from master_data import MATERIALS, PHASES
-from rfq import build_rfq, line, materials_in, title_for, validate_rfq
+from rfq import MAX_ITEMS, build_rfq, line, lines_from_demand, materials_in, title_for, validate_rfq
 from rfq_xlsx import render_rfq_xlsx
 from state import current_plan, ensure_rfqs
 
@@ -48,9 +48,17 @@ def _builder() -> None:
         return
     preview = build_rfq(demand, codes, po, _taken())
     st.dataframe(pd.DataFrame(preview["lines"])[["material", "variant", "qty", "uom", "need_by", "phase"]],
-                 hide_index=True, width="stretch")
-    st.caption(f"Will be created as **{preview['rfq_id']}** · {preview['title']} · closes {preview['close_date']}")
-    st.button("Create RFQ", type="primary", on_click=_create, args=(preview,))
+                 hide_index=True, width="stretch",
+                 column_config={"material": "Material", "variant": "Variant", "qty": "Qty", "uom": "UoM",
+                                "need_by": "Need-by", "phase": "Phase"})
+    too_many = len(preview["lines"]) > MAX_ITEMS
+    if too_many:
+        st.error(f"{len(preview['lines'])} items selected — an RFQ can hold at most {MAX_ITEMS}. Remove some "
+                 "materials or split them across two RFQs.")
+    else:
+        st.caption(f"Will be created as **{preview['rfq_id']}** · {preview['title']} · {len(preview['lines'])} "
+                   f"of max {MAX_ITEMS} items · closes {preview['close_date']}")
+    st.button("Create RFQ", type="primary", on_click=_create, args=(preview,), disabled=too_many)
 
 
 def _copilot() -> None:
@@ -92,21 +100,21 @@ def _copilot() -> None:
     st.rerun()
 
 
+def _current() -> tuple[dict | None, str]:
+    """The RFQ being worked on right now: an unsaved co-pilot draft, else the last one created or saved."""
+    if st.session_state.get("draft"):
+        return st.session_state["draft"], "__draft__"
+    rid = st.session_state.get("edit_pick")
+    rfq = db.get_rfq(rid) if rid else None
+    return rfq, rid
+
+
 def _editor() -> None:
-    rfqs = db.list_rfqs()
-    draft = st.session_state.get("draft")
-    label = {r["rfq_id"]: f"{r['rfq_id']} · {r['title']}" for r in rfqs}
-    options = list(label)
-    if draft:
-        options.insert(0, "__draft__")
-        label["__draft__"] = f"Co-pilot draft · {draft['rfq_id']} · {draft['title']} (unsaved)"
-    if not options:
+    rfq, pick = _current()
+    if not rfq:
+        st.info("Build an RFQ above (or ask the co-pilot) and it will open here for review and export.")
         return
-    pick = st.session_state.get("edit_pick")
-    pick = st.selectbox("Open RFQ", options, format_func=label.get,
-                        index=options.index(pick) if pick in options else 0)
-    st.session_state["edit_pick"] = pick
-    rfq = draft if pick == "__draft__" else db.get_rfq(pick)
+    st.subheader(f"{rfq['rfq_id']} · {rfq['title']}" + (" — co-pilot draft (unsaved)" if pick == "__draft__" else ""))
 
     if pick == "__draft__" and rfq.get("copilot"):
         with st.expander("Co-pilot assumptions and open questions", expanded=True):
@@ -115,10 +123,8 @@ def _editor() -> None:
             for q in rfq["copilot"]["open_questions"]:
                 st.markdown(f"- ❓ {q}")
 
-    with st.form(f"ed_{pick}_{rfq['rfq_id']}"):
-        c1, c2 = st.columns(2)
-        close = c1.date_input("Quotes close", value=date.fromisoformat(rfq["close_date"]))
-        c2.text_input("RFQ", value=f"{rfq['rfq_id']} · {rfq['title']}", disabled=True)
+    with st.form(f"ed_{pick}_{rfq['rfq_id']}_{st.session_state.get('refresh_n', 0)}"):
+        close = st.date_input("Quotes close", value=date.fromisoformat(rfq["close_date"]))
         df = pd.DataFrame(rfq["lines"])
         df["material"] = df["material_code"].map(MAT_LABEL)
         df["need_by"] = pd.to_datetime(df["need_by"]).dt.date
@@ -140,26 +146,25 @@ def _editor() -> None:
             terms = {k: st.text_input(k.replace("_", " ").capitalize(), value=v) for k, v in rfq["terms"].items()}
         saved = st.form_submit_button("Save RFQ", type="primary")
 
-    lines = []
+    items = []
     for _, r in edited.iterrows():
         code = MAT_BY_LABEL.get(r["material"])
         if not code:
             continue
-        lines.append(line(code, r["variant"] or "—", int(r["qty"]) if pd.notna(r["qty"]) else 0,
+        items.append(line(code, r["variant"] or "—", int(r["qty"]) if pd.notna(r["qty"]) else 0,
                           r["need_by"].isoformat() if pd.notna(r["need_by"]) else ""))
     new = {k: v for k, v in rfq.items() if not k.startswith("_")}
-    new.update({"close_date": close.isoformat(), "notes": notes, "terms": terms, "lines": lines})
-    if lines:
-        new["title"] = title_for(lines)
+    new.update({"close_date": close.isoformat(), "notes": notes, "terms": terms, "lines": items})
+    if items:
+        new["title"] = title_for(items)
     problems = validate_rfq(new)
     if saved:
         if problems:
             st.error("Not saved:\n\n" + "\n".join(f"- {p}" for p in problems))
         else:
             db.save_rfq(new, "copilot" if pick == "__draft__" else "edited")
-            if pick == "__draft__":
-                st.session_state.pop("draft", None)
-                st.session_state["edit_pick"] = new["rfq_id"]
+            st.session_state.pop("draft", None)
+            st.session_state["edit_pick"] = new["rfq_id"]
             st.toast(f"Saved {new['rfq_id']}")
             st.rerun()
 
@@ -181,23 +186,46 @@ def _editor() -> None:
         st.code(json.dumps(new, indent=2), language="json")
 
 
+def _refresh_demand() -> None:
+    """Pull the latest plan from the Demand Planner into the RFQ being worked on."""
+    rfq, pick = _current()
+    st.session_state["refresh_n"] = st.session_state.get("refresh_n", 0) + 1
+    if not rfq or pick == "__draft__":
+        st.session_state["rfq_toast"] = "Demand refreshed from the Demand Planner"
+        return
+    _, _, demand, _ = current_plan()
+    fresh = lines_from_demand(demand, materials_in(rfq))
+    if not fresh:
+        st.session_state["rfq_toast"] = "The current demand plan has no demand for these materials"
+        return
+    rfq = {**rfq, "lines": fresh, "title": title_for(fresh)}
+    db.save_rfq(rfq, "edited")
+    st.session_state["rfq_toast"] = f"{rfq['rfq_id']} updated with the latest quantities and need-by dates"
+
+
+def _reset_rfqs() -> None:
+    db.delete_all_rfqs()
+    for k in ("draft", "edit_pick", "gen_mats", "copilot_history", "copilot_display"):
+        st.session_state.pop(k, None)
+    st.session_state["gen_mats"] = []
+    st.session_state["rfq_toast"] = "All RFQs removed"
+
+
 def render() -> None:
     st.header("RFQ Generator")
-    st.caption("Put one or many parts on an RFQ — e.g. everything needed for phase P1. JSON first, rendered to "
-               "an xlsx pack second. Next step: send it from the RFQ Sender.")
+    st.caption(f"Put one or several parts on an RFQ (up to {MAX_ITEMS} items) — e.g. everything needed for phase "
+               "P1. Built live from the Demand Planner. JSON first, rendered to an xlsx pack second. Next step: "
+               "send it from the RFQ Sender.")
     ensure_rfqs()
     if msg := st.session_state.pop("rfq_toast", None):
         st.toast(msg)
+    c1, c2, _ = st.columns([1, 1, 4])
+    c1.button("Refresh demand", on_click=_refresh_demand, use_container_width=True,
+              help="Re-read the Demand Planner and update the RFQ below with the latest quantities and dates.")
+    c2.button("Reset RFQs", on_click=_reset_rfqs, use_container_width=True,
+              help="Delete every RFQ created so far.")
     with st.container(border=True):
         _builder()
     with st.expander("…or describe it to the AI co-pilot", expanded=bool(st.session_state.get("copilot_display"))):
         _copilot()
-
-    st.subheader("Your RFQs")
-    rfqs = db.list_rfqs()
-    st.dataframe(pd.DataFrame([{
-        "RFQ": r["rfq_id"], "Scope": r["title"], "Lines": len(r["lines"]),
-        "Materials": ", ".join(MATERIALS[c].name for c in materials_in(r)),
-        "Earliest need-by": min(l["need_by"] for l in r["lines"]), "Closes": r["close_date"], "Origin": r["_origin"],
-    } for r in rfqs]), hide_index=True, width="stretch")
     _editor()

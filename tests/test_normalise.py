@@ -86,3 +86,16 @@ def test_F_cheapest_but_late():
     assert rows["Standard"]["price_inr"] == 2150
     assert rows["Standard"]["delivery"].startswith("LATE")
     assert rows["Standard"]["availability"].startswith("Assumed full")
+
+
+def test_recommendations_per_variant():
+    from recommend import recommend
+    rows = [r for v in "ABCDEF" for r in run(v)[0].values()]
+    recs = {r["item"]: r for r in recommend(rows, RFQ)}
+    assert recs["Standard"]["pick"]["vendor"] == "A" and recs["Standard"]["status"] == "Recommended"
+    assert recs["Heavy-duty"]["pick"]["vendor"] == "A"
+    hs = recs["High-speed"]
+    assert hs["pick"]["vendor"] == "B" and "caveats" in hs["status"]
+    assert any(line.startswith("Alternative: A") for line in hs["why"])
+    assert {c["vendor"] for c in recs["Standard"]["excluded"]} == {"D", "E", "F"}  # not met / late
+    assert all(0 <= r["score"] <= 1 for r in rows)

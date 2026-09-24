@@ -301,6 +301,14 @@ def assign(mail_id: int, rfq_id: str, vendor_code: str) -> None:
                   (rfq_id, vendor_code, mail_id))
 
 
+def reset_outbox() -> None:
+    """Clear everything sent (the RFQ Sender's history); the inbox is untouched."""
+    with _conn() as c:
+        c.execute("DELETE FROM mail_out")
+    shutil.rmtree(db.OUTBOX, ignore_errors=True)
+    db.OUTBOX.mkdir(parents=True, exist_ok=True)
+
+
 def reset_mail() -> None:
     """Demo reset: clear both queues and the folders."""
     with _conn() as c:

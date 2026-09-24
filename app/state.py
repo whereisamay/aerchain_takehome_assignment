@@ -20,10 +20,7 @@ DEMO_RFQ = "RFQ-2026-MCH-005"
 
 
 def ensure_rfqs() -> None:
-    """First run: seed the demo RFQ (bearing assembly, the one the vendor dataset answers)."""
+    """Drop RFQs saved in the old single-material format. Nothing is auto-created: RFQs come from the
+    RFQ Generator. (The demo vendor replies answer RFQ-2026-MCH-005, the bearing-only RFQ.)"""
     import db
-    from rfq import build_rfq
     db.purge_legacy_rfqs()
-    if not db.list_rfqs():
-        _, _, demand, po = current_plan()
-        db.save_rfq(build_rfq(demand, ["MAT-005"], po, set()), "demo seed")
