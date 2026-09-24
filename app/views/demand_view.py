@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from demand import compute_demand, po_date_for
-from master_data import BOM, BUILD_WEEKS, MACHINES, MATERIALS, PHASES
+from master_data import BOM, MACHINES, MATERIALS, PHASES
 from state import DEFAULT_MACHINE_QTY, DEFAULT_TARGET
 
 
@@ -12,8 +12,10 @@ def _reset() -> None:
     for m in MACHINES:
         st.session_state[f"dq_{m}"] = 0
     st.session_state["dq_target"] = DEFAULT_TARGET
+    st.session_state["dq_po"] = None
     st.session_state["machine_qty"] = {m: 0 for m in MACHINES}
     st.session_state["target_completion"] = DEFAULT_TARGET
+    st.session_state["planned_po"] = None
 
 
 def render() -> None:
@@ -24,27 +26,30 @@ def render() -> None:
     for m in MACHINES:
         st.session_state.setdefault(f"dq_{m}", saved.get(m, 0))
     st.session_state.setdefault("dq_target", st.session_state.get("target_completion", DEFAULT_TARGET))
+    st.session_state.setdefault("dq_po", st.session_state.get("planned_po"))
 
     with st.form("demand_form"):
-        cols = st.columns(len(MACHINES) + 1)
+        cols = st.columns(len(MACHINES) + 2)
         machine_qty = {m.code: col.number_input(f"{m.code} — {m.name}", min_value=0, step=1, key=f"dq_{m.code}")
                        for col, m in zip(cols, MACHINES.values())}
-        target = cols[-1].date_input("Target completion date", key="dq_target")
+        target = cols[-2].date_input("Target completion date", key="dq_target")
+        planned = cols[-1].date_input("Planned PO date (optional)", key="dq_po",
+                                      help="When you expect to place the orders. Vendor lead times are counted "
+                                           "from this date. Leave blank to use the build start.")
         st.form_submit_button("Calculate demand", type="primary")
     st.button("Reset to zero", on_click=_reset)
 
     st.session_state["machine_qty"] = machine_qty
     st.session_state["target_completion"] = target
+    st.session_state["planned_po"] = planned
 
-    po = po_date_for(target)
+    po = planned or po_date_for(target)
     df = compute_demand(machine_qty, target)
-
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Latest PO date", po.strftime("%d %b %Y"))
-    c2.metric("Build duration", f"{BUILD_WEEKS} weeks")
-    c3.metric("Items needed", len(df))
+    st.caption(f"Orders assumed placed on **{po:%d %b %Y}**" + ("" if planned else " (build start — set a planned "
+               "PO date above to change it)") + ". Need-by dates below come from the target completion date and "
+               "the phase schedule; they are guidance, not hard limits.")
     if po < date.today():
-        st.warning(f"Latest PO date {po:%d %b %Y} is already in the past — the target completion is not achievable.")
+        st.info(f"{po:%d %b %Y} is already in the past — consider setting a later planned PO date.")
 
     if df.empty:
         st.info("Enter at least one machine quantity.")
