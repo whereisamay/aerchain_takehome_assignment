@@ -8,7 +8,6 @@ import analysis
 import analyst
 import db
 import sources
-from extract import REVIEW_THRESHOLD
 from llm import LLMError, model_name
 from master_data import FX_AS_OF, FX_RATES, FX_SOURCE
 from recommend import verdicts
@@ -220,55 +219,12 @@ def _trace(row: dict, result: dict) -> None:
     st.caption("Select a field in the table to jump to it in the document.")
 
 
-def _review(result: dict) -> None:
-    q = result["queue"]
-    if not q:
-        st.success("Nothing waiting for review.")
-        return
-    st.caption(f"Values the model read with confidence below {REVIEW_THRESHOLD:.0%}. Nothing is auto-accepted: "
-               "confirm each one, or correct it.")
-    by_vendor = {}
-    for it in q:
-        by_vendor.setdefault((it["vendor"], it["mail_id"]), []).append(it)
-    cols = st.columns(max(len(by_vendor), 1))
-    for col, ((v, mid), items) in zip(cols, sorted(by_vendor.items())):
-        if col.button(f"Confirm all {len(items)} for {v}", key=f"rv_all_{mid}"):
-            for it in items:
-                analysis.set_review(mid, it["field"], "confirm")
-            st.rerun()
-    for it in q:
-        with st.container(border=True):
-            c1, c2 = st.columns([3, 2])
-            c1.markdown(f"**Vendor {it['vendor']}** · `{it['field']}` = **{it['value']}** "
-                        f"({float(it['confidence']):.0%})  \n_source: {it['source']}_"
-                        + (f"  \n_assumption: {it['assumption']}_" if it.get("assumption") else ""))
-            key = f"rv_{it['mail_id']}_{it['field']}"
-            if c2.button("Confirm", key=key + "_ok"):
-                analysis.set_review(it["mail_id"], it["field"], "confirm")
-                st.rerun()
-            new = c2.text_input("Correct to", key=key + "_v", label_visibility="collapsed",
-                                placeholder="Correct to…")
-            if new and c2.button("Save correction", key=key + "_fix"):
-                analysis.set_review(it["mail_id"], it["field"], "correct", new)
-                st.rerun()
-
-
-CHALLENGES = [
-    "Challenge the recommendation — is there a cheaper vendor we excluded unfairly?",
-    "Cheapest per item among vendors whose certification is Met",
-    "Which items have only one viable quote?",
-    "Which assumptions in the ledger most affect the outcome?",
-    "What if the USD rate moves 3%?",
-    "What changes if we treat referred vendors as 5% cheaper?",
-    "Total landed cost if we split the award by item",
-]
-
-
 def _analyst(result: dict, rfq: dict) -> None:
-    st.subheader("AI analyst — challenge the responses")
-    st.caption(f"Ask anything about these quotes. The model ({model_name()}) writes a pandas query over the "
-               "extracted data, the app runs it, and the answer is written from the computed result — never from "
-               "memory. The query is shown under every answer.")
+    st.subheader("AI co-pilot — probe the findings")
+    st.caption(f"Ask in plain English about anything in the table — e.g. “why isn't F recommended?”, “what if C "
+               f"renews its certificate?”, “total cost if we split the award”. The model ({model_name()}) writes a "
+               "query over the extracted data, the app runs it, and the answer comes from the computed result, "
+               "never from memory.")
     key = f"analyst_{rfq['rfq_id']}"
     hist = st.session_state.setdefault(key, [])
     quotes = analyst.quotes_frame(result["rows"], verdicts(result["rows"], rfq))
@@ -287,17 +243,11 @@ def _analyst(result: dict, rfq: dict) -> None:
                     num = df.select_dtypes("number").columns
                     if len(num):
                         st.bar_chart(df, x=df.columns[0], y=num[0])
-            with st.expander("How this was computed"):
+            with st.expander("How this was computed", expanded=False):
                 st.caption(h.get("approach", ""))
                 st.code(h["code"], language="python")
 
-    cols = st.columns(4)
-    picked = None
-    for i, c in enumerate(CHALLENGES):
-        if cols[i % 4].button(c, key=f"ch_{i}", use_container_width=True):
-            picked = c
-    typed = st.chat_input("Challenge a vendor, the ranking, or ask a what-if…", key=f"chat_{rfq['rfq_id']}")
-    q = typed or picked
+    q = st.chat_input("Ask about the findings — a vendor, the ranking, a what-if…", key=f"chat_{rfq['rfq_id']}")
     c1, _ = st.columns([1, 5])
     if hist and c1.button("Clear analyst chat"):
         st.session_state[key] = []
@@ -319,7 +269,6 @@ def _export(df: pd.DataFrame, result: dict) -> bytes:
     buf = BytesIO()
     with pd.ExcelWriter(buf, engine="openpyxl") as xw:
         df.to_excel(xw, sheet_name="Comparison", index=False)
-        pd.DataFrame(result["ledger"]).to_excel(xw, sheet_name="Assumptions ledger", index=False)
         pd.DataFrame([{"FX": k, "INR per unit": v, "As of": FX_AS_OF} for k, v in FX_RATES.items()]).to_excel(
             xw, sheet_name="FX", index=False)
     return buf.getvalue()
@@ -329,7 +278,7 @@ def render() -> None:
     st.header("RFQ Standardiser & Comparison")
     st.caption("The model reads each response — any format — and says what it states, with a source and a "
                "confidence for every value. Plain Python then does all the arithmetic: FX, unit basis, credit days, "
-               "freight, delivery vs need-by, certification verdicts. Every conversion is written to the ledger.")
+               "freight, delivery vs need-by, certification verdicts. Select any row to see where each value came from.")
     ensure_rfqs()
     rfqs = db.list_rfqs()
     with_resp = [r["rfq_id"] for r in rfqs if analysis.responses_for(r["rfq_id"])] or [r["rfq_id"] for r in rfqs]
@@ -350,48 +299,36 @@ def render() -> None:
     fx = " · ".join(f"1 {k} = {v:.2f} INR" for k, v in FX_RATES.items() if k != "INR")
     st.caption(f"FX: {fx} — as on {FX_AS_OF}, {FX_SOURCE}. Planned PO {po:%d %b %Y}; delivery dates = PO + "
                "quoted lead time.")
-    c = st.columns(4)
+    c = st.columns(3)
     c[0].metric("Responses analysed", len(result["docs"]))
     c[1].metric("Quotes compared", sum(1 for r in result["rows"] if r["quoted"]))
-    c[2].metric("Needs review", len(result["queue"]))
-    c[3].metric("Buyer decisions", len(result["flags"]))
+    c[2].metric("Buyer decisions", len(result["flags"]))
     _flags(result)
 
-    t1, t2, t3 = st.tabs(["Comparison", f"Review queue ({len(result['queue'])})",
-                          f"Assumptions ledger ({len(result['ledger'])})"])
-    with t1:
-        materials = list(dict.fromkeys(l["material"] for l in rfq["lines"]))
-        if single:
-            st.markdown(f"This RFQ is for **{materials[0]}** — "
-                        + ", ".join(f"{l['variant']} × {l['qty']}" if l["variant"] != "—" else f"{l['qty']} {l['uom']}"
-                                    for l in rfq["lines"]) + ". Recommendation is per variant.")
-            material = None
-        else:
-            pickm = st.selectbox("Raw material", ["All materials"] + materials,
-                                 help="Filter the comparison to one raw material. Recommendation is per material.")
-            material = None if pickm == "All materials" else pickm
-        df, styled = _matrix(result, rfq, single, material)
-        st.caption(LEGEND + "  Recommendation is ranked in plain Python: exclude vendors that didn't quote, are "
-                   "late against need-by, fail a required standard or have no stock; then prefer full quantity, "
-                   "fewest open issues, lowest total cost.")
-        sel = st.dataframe(styled, hide_index=True, width="stretch", on_select="rerun",
-                           selection_mode="single-row", key="matrix", height=min(40 + 35 * len(df), 720),
-                           column_config={"Recommendation": st.column_config.TextColumn(width="medium"),
-                                          "Item": st.column_config.TextColumn(width="medium")})
-        st.download_button("Export comparison (xlsx)", _export(df, result), file_name=f"{rid}_comparison.xlsx")
-        if sel.selection.rows:
-            _trace(st.session_state["_matrix_rows"][sel.selection.rows[0]], result)
-        else:
-            st.info("Select any row to trace every number back to the cell, page, paragraph or photo region it "
-                    "came from.", icon="🔎")
-    with t2:
-        _review(result)
-    with t3:
-        led = pd.DataFrame(result["ledger"])
-        if not led.empty:
-            vsel = st.multiselect("Vendor", sorted(led["vendor"].unique()), default=sorted(led["vendor"].unique()))
-            st.dataframe(led[led["vendor"].isin(vsel)], hide_index=True, width="stretch",
-                         column_config={"text": st.column_config.TextColumn("Entry", width="large")})
+    materials = list(dict.fromkeys(l["material"] for l in rfq["lines"]))
+    if single:
+        st.markdown(f"This RFQ is for **{materials[0]}** — "
+                    + ", ".join(f"{l['variant']} × {l['qty']}" if l["variant"] != "—" else f"{l['qty']} {l['uom']}"
+                                for l in rfq["lines"]) + ". Recommendation is per variant.")
+        material = None
+    else:
+        pickm = st.selectbox("Raw material", ["All materials"] + materials,
+                             help="Filter the comparison to one raw material. Recommendation is per material.")
+        material = None if pickm == "All materials" else pickm
+    df, styled = _matrix(result, rfq, single, material)
+    st.caption(LEGEND + "  Recommendation is ranked in plain Python: exclude vendors that didn't quote, are "
+               "late against need-by, fail a required standard or have no stock; then prefer full quantity, "
+               "fewest open issues, lowest total cost.")
+    sel = st.dataframe(styled, hide_index=True, width="stretch", on_select="rerun",
+                       selection_mode="single-row", key="matrix", height=min(40 + 35 * len(df), 720),
+                       column_config={"Recommendation": st.column_config.TextColumn(width="medium"),
+                                      "Item": st.column_config.TextColumn(width="medium")})
+    st.download_button("Export comparison (xlsx)", _export(df, result), file_name=f"{rid}_comparison.xlsx")
+    if sel.selection.rows:
+        _trace(st.session_state["_matrix_rows"][sel.selection.rows[0]], result)
+    else:
+        st.info("Select any row to trace every number back to the cell, page, paragraph or photo region it "
+                "came from.", icon="🔎")
 
     st.divider()
     _analyst(result, rfq)
