@@ -5,10 +5,11 @@ import pandas as pd
 import streamlit as st
 
 import analysis
+import analyst
 import db
 import sources
 from extract import REVIEW_THRESHOLD
-from llm import model_name
+from llm import LLMError, model_name
 from master_data import FX_AS_OF, FX_RATES, FX_SOURCE
 from recommend import verdicts
 from state import DEMO_RFQ, current_plan, ensure_rfqs
@@ -252,6 +253,68 @@ def _review(result: dict) -> None:
                 st.rerun()
 
 
+CHALLENGES = [
+    "Challenge the recommendation — is there a cheaper vendor we excluded unfairly?",
+    "Cheapest per item among vendors whose certification is Met",
+    "Which items have only one viable quote?",
+    "Which assumptions in the ledger most affect the outcome?",
+    "What if the USD rate moves 3%?",
+    "What changes if we treat referred vendors as 5% cheaper?",
+    "Total landed cost if we split the award by item",
+]
+
+
+def _analyst(result: dict, rfq: dict) -> None:
+    st.subheader("AI analyst — challenge the responses")
+    st.caption(f"Ask anything about these quotes. The model ({model_name()}) writes a pandas query over the "
+               "extracted data, the app runs it, and the answer is written from the computed result — never from "
+               "memory. The query is shown under every answer.")
+    key = f"analyst_{rfq['rfq_id']}"
+    hist = st.session_state.setdefault(key, [])
+    quotes = analyst.quotes_frame(result["rows"], verdicts(result["rows"], rfq))
+    ledger = pd.DataFrame(result["ledger"])
+
+    for h in hist:
+        with st.chat_message("user"):
+            st.markdown(h["q"])
+        with st.chat_message("assistant"):
+            st.markdown(h["a"])
+            res = h.get("result")
+            if isinstance(res, (pd.DataFrame, pd.Series)) and len(res):
+                df = res.to_frame() if isinstance(res, pd.Series) else res
+                st.dataframe(df, hide_index=True, width="stretch")
+                if h.get("chart") == "bar" and df.shape[1] >= 2:
+                    num = df.select_dtypes("number").columns
+                    if len(num):
+                        st.bar_chart(df, x=df.columns[0], y=num[0])
+            with st.expander("How this was computed"):
+                st.caption(h.get("approach", ""))
+                st.code(h["code"], language="python")
+
+    cols = st.columns(4)
+    picked = None
+    for i, c in enumerate(CHALLENGES):
+        if cols[i % 4].button(c, key=f"ch_{i}", use_container_width=True):
+            picked = c
+    typed = st.chat_input("Challenge a vendor, the ranking, or ask a what-if…", key=f"chat_{rfq['rfq_id']}")
+    q = typed or picked
+    c1, _ = st.columns([1, 5])
+    if hist and c1.button("Clear analyst chat"):
+        st.session_state[key] = []
+        st.rerun()
+    if not q:
+        return
+    with st.spinner("Writing and running the query…"):
+        try:
+            out = analyst.ask(q, hist, quotes, ledger, rfq)
+        except LLMError as e:
+            st.error(str(e))
+            return
+    hist.append({"q": q, "a": out["answer"], "code": out["code"], "approach": out["approach"],
+                 "result": out["result"], "chart": out["chart"]})
+    st.rerun()
+
+
 def _export(df: pd.DataFrame, result: dict) -> bytes:
     buf = BytesIO()
     with pd.ExcelWriter(buf, engine="openpyxl") as xw:
@@ -329,3 +392,6 @@ def render() -> None:
             vsel = st.multiselect("Vendor", sorted(led["vendor"].unique()), default=sorted(led["vendor"].unique()))
             st.dataframe(led[led["vendor"].isin(vsel)], hide_index=True, width="stretch",
                          column_config={"text": st.column_config.TextColumn("Entry", width="large")})
+
+    st.divider()
+    _analyst(result, rfq)

@@ -79,6 +79,9 @@ def _call(system: str, messages: list[dict], effort: str, max_tokens: int, extra
         ) as stream:
             resp = stream.get_final_message()
     except anthropic.BadRequestError as e:
+        if "credit balance is too low" in str(e.message):
+            raise LLMError("The Anthropic account is out of API credit — top it up in the Claude Console "
+                           "(Settings → Billing), then try again.") from e
         raise LLMError(f"Model request rejected: {e.message}") from e
     except anthropic.AuthenticationError as e:
         key = _api_key()
