@@ -12,7 +12,8 @@ sys.path.insert(0, str(ROOT / "app"))
 import db  # noqa: E402
 import mail  # noqa: E402
 from demand import compute_demand, po_date_for  # noqa: E402
-from rfq import build_rfqs  # noqa: E402
+from master_data import MATERIALS  # noqa: E402
+from rfq import build_rfq  # noqa: E402
 
 TARGET = date(2027, 2, 10)
 
@@ -25,9 +26,9 @@ def sandbox(tmp_path, monkeypatch):
     monkeypatch.setattr(db, "OUTBOX", tmp_path / "outbox")
     monkeypatch.setattr(mail, "ATTACH_DIR", tmp_path / "inbox" / "attachments")
     monkeypatch.setattr(mail, "DEMO_INBOX", ROOT / "data" / "demo_inbox")
-    for r in build_rfqs(compute_demand({"PS-200": 12, "PS-075": 20}, TARGET), po_date_for(TARGET),
-                        today=date(2026, 9, 23)):
-        db.save_rfq(r, "generated")
+    demand = compute_demand({"PS-200": 12, "PS-075": 20}, TARGET)
+    for code in ("MAT-005", "MAT-006"):
+        db.save_rfq(build_rfq(demand, [code], po_date_for(TARGET), set(), today=date(2026, 9, 23)), "generated")
     return tmp_path
 
 
@@ -77,6 +78,16 @@ def test_sender_with_several_open_rfqs_is_not_guessed(sandbox):
         mail.send_rfq(db.get_rfq(rid), ["D"])
     corr = mail.correlate(["procurement@buyer.example"], "our quote", "sales.asia@pacificmotion.example")
     assert corr["vendor_code"] == "D" and corr["rfq_id"] is None
+
+
+def test_multi_material_rfq_mail_lists_every_line(sandbox):
+    demand = compute_demand({"PS-200": 12, "PS-075": 20}, TARGET)
+    rfq = build_rfq(demand, [c for c, m in MATERIALS.items() if m.phase == "P1"], po_date_for(TARGET), set())
+    db.save_rfq(rfq, "generated")
+    mail.send_rfq(rfq, ["A"])
+    body = mail.outbox()[0]["body"]
+    assert "Pump casing, cast iron: 32 nos" in body and "AISI 431" in body
+    assert mail.correlate([mail.reply_address(rfq["rfq_id"], "A")], "", "x@y.example")["rfq_id"] == rfq["rfq_id"]
 
 
 def test_uploaded_loose_file_lands_unmatched(sandbox):

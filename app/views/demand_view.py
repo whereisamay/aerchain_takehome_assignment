@@ -9,7 +9,7 @@ from master_data import BOM, BUILD_WEEKS, MACHINES, MATERIALS, PHASES
 
 
 def render() -> None:
-    st.header("Demand")
+    st.header("Demand Planner")
     st.caption("Machine build plan → material demand by phase, with need-by dates. Deterministic, no AI.")
 
     with st.form("demand_form"):

@@ -1,4 +1,9 @@
-"""RFQ objects. JSON first, rendered to a document second (see rfq_xlsx.py)."""
+"""RFQ objects. JSON first, rendered to a document second (see rfq_xlsx.py).
+
+An RFQ can cover several materials (e.g. everything needed for phase P1). Each line is one
+material + variant. IDs: a single-material RFQ takes the material number (RFQ-2026-MCH-005 is
+the bearing assembly); a multi-material RFQ takes the next free number from 101 up.
+"""
 from datetime import date, timedelta
 
 import pandas as pd
@@ -19,9 +24,7 @@ STANDARD_TERMS = {
     "validity": "Quote valid for at least 60 days from close date",
 }
 
-
-def rfq_id_for(material_no: int, year: int) -> str:
-    return f"RFQ-{year}-MCH-{material_no:03d}"
+MULTI_START = 101
 
 
 def default_close_date(po_date: date, today: date | None = None) -> date:
@@ -30,52 +33,92 @@ def default_close_date(po_date: date, today: date | None = None) -> date:
     return max(po_date - timedelta(days=5), today + timedelta(days=3))
 
 
-def build_rfqs(demand: pd.DataFrame, po_date: date, today: date | None = None) -> list[dict]:
-    close = default_close_date(po_date, today)
-    rfqs = []
-    for code, grp in demand.groupby("Material code", sort=True):
-        m = MATERIALS[code]
-        variants = [
-            {"variant": r["Variant"], "qty": int(r["Total qty"]), "uom": r["UoM"],
-             "need_by": pd.Timestamp(r["Need-by"]).date().isoformat()}
-            for _, r in grp.iterrows() if int(r["Total qty"]) > 0
-        ]
-        rfqs.append({
-            "rfq_id": rfq_id_for(m.no, close.year),
-            "material_code": m.code,
-            "material": m.name,
-            "phase": m.phase,
-            "phase_name": PHASES[m.phase].name,
-            "variants": variants,
-            "quality_standard": m.quality_standard,
-            "spec_notes": m.spec_notes,
-            "buyer": dict(BUYER),
-            "terms": dict(STANDARD_TERMS),
-            "response_fields": list(RESPONSE_FIELDS),
-            "planned_po_date": po_date.isoformat(),
-            "close_date": close.isoformat(),
-            "notes": "",
-        })
-    return rfqs
+def rfq_id_for(material_codes: list[str], year: int, taken: set[str]) -> str:
+    codes = sorted(set(material_codes))
+    if len(codes) == 1:
+        return f"RFQ-{year}-MCH-{MATERIALS[codes[0]].no:03d}"
+    n = MULTI_START
+    while f"RFQ-{year}-MCH-{n:03d}" in taken:
+        n += 1
+    return f"RFQ-{year}-MCH-{n:03d}"
+
+
+def title_for(lines: list[dict]) -> str:
+    codes = list(dict.fromkeys(l["material_code"] for l in lines))
+    if len(codes) == 1:
+        return MATERIALS[codes[0]].name
+    phases = sorted({MATERIALS[c].phase for c in codes})
+    if len(phases) == 1:
+        return f"{phases[0]} · {PHASES[phases[0]].name} — {len(codes)} materials"
+    return f"{len(codes)} materials across {', '.join(phases)}"
+
+
+def line(material_code: str, variant: str, qty: int, need_by: str) -> dict:
+    m = MATERIALS[material_code]
+    return {"material_code": m.code, "material": m.name, "phase": m.phase, "variant": variant,
+            "qty": int(qty), "uom": m.uom, "need_by": need_by, "quality_standard": m.quality_standard}
+
+
+def lines_from_demand(demand: pd.DataFrame, material_codes: list[str]) -> list[dict]:
+    rows = demand[demand["Material code"].isin(material_codes)].sort_values(["No"])
+    return [line(r["Material code"], r["Variant"], int(r["Total qty"]),
+                 pd.Timestamp(r["Need-by"]).date().isoformat())
+            for _, r in rows.iterrows() if int(r["Total qty"]) > 0]
+
+
+def assemble(lines: list[dict], close: date, po_date: date | None, taken: set[str], notes: str = "",
+             rfq_id: str | None = None) -> dict:
+    return {
+        "rfq_id": rfq_id or rfq_id_for([l["material_code"] for l in lines], close.year, taken),
+        "title": title_for(lines),
+        "lines": lines,
+        "buyer": dict(BUYER),
+        "terms": dict(STANDARD_TERMS),
+        "response_fields": list(RESPONSE_FIELDS),
+        "planned_po_date": po_date.isoformat() if po_date else "",
+        "close_date": close.isoformat(),
+        "notes": notes,
+    }
+
+
+def build_rfq(demand: pd.DataFrame, material_codes: list[str], po_date: date, taken: set[str],
+              today: date | None = None) -> dict:
+    return assemble(lines_from_demand(demand, material_codes), default_close_date(po_date, today), po_date, taken)
+
+
+def materials_in(rfq: dict) -> list[str]:
+    return list(dict.fromkeys(l["material_code"] for l in rfq["lines"]))
+
+
+def standards_in(rfq: dict) -> list[tuple[str, str]]:
+    """(material name, quality standard) per distinct material, in line order."""
+    seen = {}
+    for l in rfq["lines"]:
+        seen.setdefault(l["material"], l["quality_standard"])
+    return list(seen.items())
 
 
 def validate_rfq(rfq: dict) -> list[str]:
-    """Problems a buyer must fix before the RFQ can be exported. Empty list = ok."""
+    """Problems a buyer must fix before the RFQ can be exported or sent. Empty list = ok."""
     problems = []
-    m = MATERIALS.get(rfq.get("material_code", ""))
-    if not m:
-        return [f"Unknown material code {rfq.get('material_code')!r}"]
-    if not rfq.get("variants"):
-        problems.append("No line items")
-    for v in rfq.get("variants", []):
-        if v.get("variant") not in m.variants:
-            problems.append(f"Variant {v.get('variant')!r} is not a known variant of {m.name} ({', '.join(m.variants)})")
-        if not isinstance(v.get("qty"), int) or v["qty"] <= 0:
-            problems.append(f"Quantity for {v.get('variant')!r} must be a positive whole number")
+    if not rfq.get("lines"):
+        return ["No line items"]
+    for i, l in enumerate(rfq["lines"], 1):
+        m = MATERIALS.get(l.get("material_code", ""))
+        if not m:
+            problems.append(f"Line {i}: unknown material {l.get('material_code')!r}")
+            continue
+        if l.get("variant") not in m.variants:
+            problems.append(f"Line {i}: {l.get('variant')!r} is not a variant of {m.name} ({', '.join(m.variants)})")
+        if not isinstance(l.get("qty"), int) or l["qty"] <= 0:
+            problems.append(f"Line {i}: quantity must be a positive whole number")
         try:
-            date.fromisoformat(v.get("need_by", ""))
+            date.fromisoformat(l.get("need_by", ""))
         except (TypeError, ValueError):
-            problems.append(f"Need-by date for {v.get('variant')!r} is not a valid date")
+            problems.append(f"Line {i}: need-by date is not a valid date")
+    keys = [(l.get("material_code"), l.get("variant")) for l in rfq["lines"]]
+    if len(keys) != len(set(keys)):
+        problems.append("The same material and variant appears on more than one line")
     try:
         date.fromisoformat(rfq.get("close_date", ""))
     except (TypeError, ValueError):

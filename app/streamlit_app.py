@@ -9,7 +9,7 @@ from auth import require_password  # noqa: E402
 
 require_password()
 
-from views import demand_view, mail_view, rfq_view, vendors_view  # noqa: E402
+from views import compare_view, demand_view, inbox_view, rfq_view, sender_view  # noqa: E402
 
 
 @st.cache_resource
@@ -22,10 +22,11 @@ def _build() -> str:
 
 
 pg = st.navigation([
-    st.Page(demand_view.render, title="1 · Demand", url_path="demand", default=True),
-    st.Page(rfq_view.render, title="2 · RFQs", url_path="rfqs"),
-    st.Page(vendors_view.render, title="3 · Vendors", url_path="vendors"),
-    st.Page(mail_view.render, title="4 · Mail", url_path="mail"),
+    st.Page(demand_view.render, title="1 · Demand Planner", url_path="demand", default=True),
+    st.Page(rfq_view.render, title="2 · RFQ Generator", url_path="rfqs"),
+    st.Page(sender_view.render, title="3 · RFQ Sender", url_path="send"),
+    st.Page(inbox_view.render, title="4 · Vendor Inbox", url_path="inbox"),
+    st.Page(compare_view.render, title="5 · Standardise & Compare", url_path="compare"),
 ], position="top")
 pg.run()
 st.caption(f"Build {_build()}")

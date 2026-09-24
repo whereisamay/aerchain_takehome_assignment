@@ -18,6 +18,7 @@ from pathlib import Path
 import db
 import vendors
 from master_data import BUYER
+from rfq import standards_in
 from rfq_xlsx import render_rfq_xlsx
 
 BUYER_DOMAIN = "buyer.example"
@@ -63,17 +64,19 @@ def reply_address(rfq_id: str, vendor_code: str) -> str:
 # ------------------------------------------------------------------ outbound
 def _rfq_body(rfq: dict, vendor: dict) -> str:
     lines = "\n".join(
-        f"  - {v['variant'] if v['variant'] != '—' else rfq['material']}: {v['qty']} {v['uom']}, "
-        f"needed at our plant by {datetime.fromisoformat(v['need_by']):%d %b %Y}"
-        for v in rfq["variants"])
+        f"  - {l['material']}{'' if l['variant'] == '—' else ' (' + l['variant'] + ')'}: {l['qty']} {l['uom']}, "
+        f"needed at our plant by {datetime.fromisoformat(l['need_by']):%d %b %Y}"
+        for l in rfq["lines"])
+    stds = "\n".join(f"  - {m}: {q}" for m, q in standards_in(rfq))
     return f"""Dear {vendor['name']} team,
 
-Please find attached our Request for Quotation {rfq['rfq_id']} for {rfq['material']}.
+Please find attached our Request for Quotation {rfq['rfq_id']} — {rfq['title']}.
 
 Requirement:
 {lines}
 
-Quality standard required: {rfq['quality_standard']}
+Quality standards required:
+{stds}
 Quotes close: {datetime.fromisoformat(rfq['close_date']):%d %b %Y}
 
 Please complete the shaded cells in the attached workbook, or reply in your own format covering:
@@ -125,7 +128,7 @@ def send_rfq(rfq: dict, vendor_codes: list[str]) -> list[int]:
     ids = []
     for code in vendor_codes:
         v = by_code[code]
-        msg = compose("rfq", rfq, v, f"{rfq['rfq_id']} — Request for quotation: {rfq['material']}",
+        msg = compose("rfq", rfq, v, f"{rfq['rfq_id']} — Request for quotation: {rfq['title']}",
                       _rfq_body(rfq, v),
                       [(f"{rfq['rfq_id']}.xlsx", pack,
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")])

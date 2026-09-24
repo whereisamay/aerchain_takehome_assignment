@@ -1,7 +1,8 @@
 """RFQ co-pilot: buyer describes what they want in plain English, the model writes the RFQ JSON.
 
-The model decides *what* the RFQ says. Python assembles it (ids, buyer block, terms, UoM)
-and validates it against master data before it can be exported.
+The model decides *what* the RFQ says (which materials, variants, quantities, dates). Python
+assembles it (id, buyer block, terms, UoM, standards) and validates it against master data
+before it can be exported.
 """
 import json
 from datetime import date
@@ -10,33 +11,32 @@ import pandas as pd
 
 from llm import json_call
 from master_data import BUYER, MATERIALS, PHASES
-from rfq import RESPONSE_FIELDS, STANDARD_TERMS, rfq_id_for, validate_rfq
+from rfq import assemble, line, validate_rfq
 
 SCHEMA = {
     "type": "object",
     "properties": {
         "reply": {"type": "string", "description": "Short message back to the buyer: what you drafted and why."},
-        "material_code": {"type": "string", "enum": sorted(MATERIALS)},
-        "variants": {
+        "lines": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
+                    "material_code": {"type": "string", "enum": sorted(MATERIALS)},
                     "variant": {"type": "string"},
                     "qty": {"type": "integer"},
                     "need_by": {"type": "string", "description": "ISO date YYYY-MM-DD"},
                 },
-                "required": ["variant", "qty", "need_by"],
+                "required": ["material_code", "variant", "qty", "need_by"],
                 "additionalProperties": False,
             },
         },
-        "quality_standard": {"type": "string"},
         "close_date": {"type": "string", "description": "ISO date YYYY-MM-DD"},
         "notes": {"type": "string", "description": "Extra requirements for vendors, or empty string."},
         "assumptions": {"type": "array", "items": {"type": "string"}},
         "open_questions": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["reply", "material_code", "variants", "quality_standard", "close_date", "notes",
+    "required": ["reply", "lines", "close_date", "notes",
                  "assumptions", "open_questions"],
     "additionalProperties": False,
 }
@@ -56,7 +56,8 @@ def _system(demand: pd.DataFrame | None, po_date: date | None, today: date) -> s
         demand_txt = demand[["Material code", "Material", "Variant", "Total qty", "UoM", "Need-by", "Derivation"]] \
             .to_csv(index=False)
     return f"""You are the RFQ co-pilot for the procurement team at {BUYER['company']}, a manufacturer of industrial pump skids.
-The buyer describes what they want to source. You draft ONE request for quotation (RFQ) for ONE material.
+The buyer describes what they want to source. You draft ONE request for quotation (RFQ). An RFQ may cover one
+material or several (e.g. "everything for phase P1"); each line is one material + variant.
 
 Today is {today.isoformat()}. Planned PO date from the current build plan: {po_date.isoformat() if po_date else 'unknown'}.
 
@@ -69,50 +70,36 @@ Current demand plan (quantities and need-by dates calculated from the machine bu
 Rules:
 - Default quantities and need-by dates to the demand plan. Only deviate when the buyer explicitly asks, and record the deviation in assumptions.
 - Quantities you derive from what the buyer says (e.g. "bearings for 5 more PS-200s") must be worked out from the demand plan's per-machine derivation, and the working shown in assumptions.
-- Default the quality standard to the material master. Add to it only if the buyer asks.
+- Quality standards come from the material master automatically; put any extra requirement the buyer states in notes.
 - Default close date: 5 days before the planned PO date, and never earlier than 3 days from today.
-- If the request is ambiguous (which material? which variants?) make the most reasonable draft and put the question in open_questions. Never invent a material or variant that is not in the master.
+- If the request is ambiguous (which materials? which variants?) make the most reasonable draft and put the question in open_questions. Never invent a material or variant that is not in the master.
+- Omit lines with zero quantity.
 - If the buyer is refining an earlier draft, return the full updated RFQ, not just the change.
 - notes: only vendor-facing requirements the buyer actually stated (packaging, inspection, delivery split, etc.).
 - reply: two or three sentences, plain English."""
 
 
 def draft_rfq(history: list[dict], demand: pd.DataFrame | None, po_date: date | None,
-              today: date | None = None) -> tuple[dict, dict]:
+              taken: set[str] = frozenset(), today: date | None = None) -> tuple[dict, dict]:
     """history: [{"role": "user"|"assistant", "content": str}, ...] ending with the buyer's latest message.
 
     Returns (rfq, raw_model_output)."""
     today = today or date.today()
     out = json_call(_system(demand, po_date, today), history, SCHEMA, effort="medium")
-    m = MATERIALS[out["material_code"]]
     try:
-        year = date.fromisoformat(out["close_date"]).year
+        close = date.fromisoformat(out["close_date"])
     except ValueError:
-        year = today.year
-    rfq = {
-        "rfq_id": rfq_id_for(m.no, year),
-        "material_code": m.code,
-        "material": m.name,
-        "phase": m.phase,
-        "phase_name": PHASES[m.phase].name,
-        "variants": [{**v, "uom": m.uom} for v in out["variants"]],
-        "quality_standard": out["quality_standard"],
-        "spec_notes": m.spec_notes,
-        "buyer": dict(BUYER),
-        "terms": dict(STANDARD_TERMS),
-        "response_fields": list(RESPONSE_FIELDS),
-        "planned_po_date": po_date.isoformat() if po_date else "",
-        "close_date": out["close_date"],
-        "notes": out["notes"],
-        "copilot": {"assumptions": out["assumptions"], "open_questions": out["open_questions"]},
-    }
+        close = today
+    lines = [line(l["material_code"], l["variant"], l["qty"], l["need_by"]) for l in out["lines"]]
+    rfq = assemble(lines, close, po_date, set(taken), notes=out["notes"])
+    rfq["close_date"] = out["close_date"]
+    rfq["copilot"] = {"assumptions": out["assumptions"], "open_questions": out["open_questions"]}
     return rfq, out
 
 
 def assistant_turn_text(out: dict) -> str:
     """Compact record of the model's last draft, fed back as the assistant turn for follow-ups."""
-    return json.dumps({k: out[k] for k in ("reply", "material_code", "variants", "quality_standard",
-                                           "close_date", "notes")}, ensure_ascii=False)
+    return json.dumps({k: out[k] for k in ("reply", "lines", "close_date", "notes")}, ensure_ascii=False)
 
 
 __all__ = ["draft_rfq", "assistant_turn_text", "validate_rfq"]
