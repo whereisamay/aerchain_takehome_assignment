@@ -2,6 +2,7 @@
 import json
 
 import anthropic
+import jsonschema
 
 from auth import get_secret
 
@@ -29,16 +30,54 @@ def client() -> anthropic.Anthropic:
 
 
 def json_call(system: str, messages: list[dict], schema: dict, effort: str = "medium",
-              max_tokens: int = 16000) -> dict:
-    """One model call constrained to a JSON schema. Returns the parsed object."""
+              max_tokens: int = 16000, constrained: bool = True) -> dict:
+    """One model call returning an object that matches `schema`.
+
+    constrained=True uses structured outputs (grammar-constrained decoding). Large schemas exceed the
+    grammar limits, so constrained=False puts the schema in the prompt and validates the reply against
+    it in Python, retrying once with the validation errors."""
+    if constrained:
+        text = _call(system, messages, effort, max_tokens,
+                     {"format": {"type": "json_schema", "schema": schema}})
+        return json.loads(text)
+    sys_prompt = (system + "\n\nRespond with ONE JSON object and nothing else (no prose, no code fences). "
+                  "It must validate against this JSON Schema:\n" + json.dumps(schema))
+    text = _call(sys_prompt, messages, effort, max_tokens)
     try:
-        resp = client().messages.create(
+        obj = _parse(text)
+        jsonschema.validate(obj, schema)
+        return obj
+    except (json.JSONDecodeError, jsonschema.ValidationError) as e:
+        err = e.message if isinstance(e, jsonschema.ValidationError) else str(e)
+        retry = messages + [{"role": "assistant", "content": text},
+                            {"role": "user", "content": f"That JSON is invalid: {err[:800]}. Return the corrected "
+                                                        "complete JSON object only."}]
+        obj = _parse(_call(sys_prompt, retry, effort, max_tokens))
+        try:
+            jsonschema.validate(obj, schema)
+        except jsonschema.ValidationError as e2:
+            raise LLMError(f"Model output did not match the schema: {e2.message[:300]}") from e2
+        return obj
+
+
+def _parse(text: str) -> dict:
+    t = text.strip()
+    if t.startswith("```"):
+        t = t.split("\n", 1)[1].rsplit("```", 1)[0]
+    start, end = t.find("{"), t.rfind("}")
+    return json.loads(t[start:end + 1])
+
+
+def _call(system: str, messages: list[dict], effort: str, max_tokens: int, extra_output: dict | None = None) -> str:
+    try:
+        with client().messages.stream(
             model=model_name(),
             max_tokens=max_tokens,
             system=system,
             messages=messages,
-            output_config={"effort": effort, "format": {"type": "json_schema", "schema": schema}},
-        )
+            output_config={"effort": effort, **(extra_output or {})},
+        ) as stream:
+            resp = stream.get_final_message()
     except anthropic.BadRequestError as e:
         raise LLMError(f"Model request rejected: {e.message}") from e
     except anthropic.AuthenticationError as e:
@@ -57,7 +96,7 @@ def json_call(system: str, messages: list[dict], schema: dict, effort: str = "me
         raise LLMError("The model declined this request.")
     if resp.stop_reason == "max_tokens":
         raise LLMError("The model ran out of output tokens before finishing.")
-    text = next((b.text for b in resp.content if b.type == "text"), None)
-    if text is None:
+    text = "".join(b.text for b in resp.content if b.type == "text")
+    if not text:
         raise LLMError("The model returned no content.")
-    return json.loads(text)
+    return text

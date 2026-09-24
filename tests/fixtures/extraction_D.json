@@ -1,0 +1,390 @@
+{
+ "summary": "Quotation PMC-2609-0417 from Pacific Motion Components Pte Ltd covering all three RFQ bearing-assembly variants, priced in USD per SET of 2 pieces rather than per single unit as requested. Payment is by irrevocable LC at sight (no credit days), freight/Incoterm basis is not stated anywhere, and only an ISO 15243 test report is offered — no supplier ISO 9001 evidence.",
+ "vendor_quote_ref": {
+  "value": "PMC-2609-0417",
+  "confidence": 0.97,
+  "source": "Sheet1!A4 ('Quote #: PMC-2609-0417'); also email subject line",
+  "assumption": null,
+  "region": null
+ },
+ "lines": [
+  {
+   "rfq_line": 0,
+   "vendor_item": "PMC-BA-6212 — Bearing assy - std type",
+   "mapping": "inferred",
+   "mapping_note": "Description 'std type' matched to RFQ variant Standard; the document does not use the word 'Standard' verbatim as a variant name.",
+   "quoted": true,
+   "unit_price": {
+    "value": "54",
+    "confidence": 0.96,
+    "source": "Sheet1!F8 (column 'Unit Price (USD)')",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "USD",
+    "confidence": 0.96,
+    "source": "Sheet1!F7 header 'Unit Price (USD)'",
+    "assumption": null,
+    "region": null
+   },
+   "units_per_price": {
+    "value": "2",
+    "confidence": 0.93,
+    "source": "Sheet1!D8 ('SET (2 PCS)')",
+    "assumption": "Read the UOM 'SET (2 PCS)' as one priced set containing 2 bearing assemblies.",
+    "region": null
+   },
+   "qty_offered": {
+    "value": "20",
+    "confidence": 0.96,
+    "source": "Sheet1!E8 (column 'Qty')",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.75,
+    "source": "Sheet1!E8 with UOM Sheet1!D8 'SET (2 PCS)' vs RFQ qty 40 nos",
+    "assumption": "Treated 20 sets of 2 pcs as covering the 40 nos requested; vendor does not state coverage explicitly.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "4 wks",
+    "confidence": 0.95,
+    "source": "Sheet1!H8 (column 'Lead Time')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "Priced per SET (2 PCS), not per single unit as the RFQ price basis requests."
+  },
+  {
+   "rfq_line": 1,
+   "vendor_item": "PMC-BA-NU316 — Bearing assy - HD type",
+   "mapping": "inferred",
+   "mapping_note": "'HD type' read as heavy-duty, matching RFQ line 1 Heavy-duty; NU316 series is a heavy-duty cylindrical roller type.",
+   "quoted": true,
+   "unit_price": {
+    "value": "108",
+    "confidence": 0.96,
+    "source": "Sheet1!F9 (column 'Unit Price (USD)')",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "USD",
+    "confidence": 0.96,
+    "source": "Sheet1!F7 header 'Unit Price (USD)'",
+    "assumption": null,
+    "region": null
+   },
+   "units_per_price": {
+    "value": "2",
+    "confidence": 0.93,
+    "source": "Sheet1!D9 ('SET (2 PCS)')",
+    "assumption": "Read the UOM 'SET (2 PCS)' as one priced set containing 2 bearing assemblies.",
+    "region": null
+   },
+   "qty_offered": {
+    "value": "12",
+    "confidence": 0.96,
+    "source": "Sheet1!E9 (column 'Qty')",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.75,
+    "source": "Sheet1!E9 with UOM Sheet1!D9 'SET (2 PCS)' vs RFQ qty 24 nos",
+    "assumption": "Treated 12 sets of 2 pcs as covering the 24 nos requested; vendor does not state coverage explicitly.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "4 wks",
+    "confidence": 0.95,
+    "source": "Sheet1!H9 (column 'Lead Time')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "Priced per SET (2 PCS)."
+  },
+  {
+   "rfq_line": 2,
+   "vendor_item": "PMC-BA-7014H — Bearing assy - HS type",
+   "mapping": "inferred",
+   "mapping_note": "'HS type' read as high-speed, matching RFQ line 2 High-speed; 7014 is an angular-contact high-speed series.",
+   "quoted": true,
+   "unit_price": {
+    "value": "148",
+    "confidence": 0.96,
+    "source": "Sheet1!F10 (column 'Unit Price (USD)')",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "USD",
+    "confidence": 0.96,
+    "source": "Sheet1!F7 header 'Unit Price (USD)'",
+    "assumption": null,
+    "region": null
+   },
+   "units_per_price": {
+    "value": "2",
+    "confidence": 0.93,
+    "source": "Sheet1!D10 ('SET (2 PCS)')",
+    "assumption": "Read the UOM 'SET (2 PCS)' as one priced set containing 2 bearing assemblies.",
+    "region": null
+   },
+   "qty_offered": {
+    "value": "10",
+    "confidence": 0.96,
+    "source": "Sheet1!E10 (column 'Qty')",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.75,
+    "source": "Sheet1!E10 with UOM Sheet1!D10 'SET (2 PCS)' vs RFQ qty 20 nos",
+    "assumption": "Treated 10 sets of 2 pcs as covering the 20 nos requested; vendor does not state coverage explicitly.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "4 wks",
+    "confidence": 0.95,
+    "source": "Sheet1!H10 (column 'Lead Time')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "Priced per SET (2 PCS)."
+  }
+ ],
+ "credit": {
+  "text": {
+   "value": "Payment: Irrevocable Letter of Credit at sight",
+   "confidence": 0.96,
+   "source": "Sheet1!A13 (merged A13:H13)",
+   "assumption": null,
+   "region": null
+  },
+  "kind": "lc_at_sight",
+  "net_days": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "discount_pct": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "discount_days": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "advance_pct": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "balance_event": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "freight": {
+  "text": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "kind": "unstated",
+  "threshold_amount": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_currency": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "volume_discount": {
+  "text": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "pct": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_amount": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_currency": {
+   "value": null,
+   "confidence": 0.2,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "validity": {
+  "value": "30 days",
+  "confidence": 0.95,
+  "source": "Sheet1!A15 ('Validity: 30 days. E&OE.')",
+  "assumption": null,
+  "region": null
+ },
+ "cert_assessment": [
+  {
+   "required": "ISO 15243",
+   "material": "Bearing assembly",
+   "match": "exact",
+   "vendor_standard": {
+    "value": "ISO 15243",
+    "confidence": 0.95,
+    "source": "Sheet1!A14 ('Quality: ISO 15243 test report enclosed with each lot (report ref PMC-TR-15243-2026)')",
+    "assumption": null,
+    "region": null
+   },
+   "certificate_no": {
+    "value": "PMC-TR-15243-2026",
+    "confidence": 0.95,
+    "source": "Sheet1!A14",
+    "assumption": null,
+    "region": null
+   },
+   "issuer": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "expiry": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "note": "Vendor cites the very standard required, via a per-lot test report; issuing body and validity are not stated."
+  },
+  {
+   "required": "supplier ISO 9001",
+   "material": "Bearing assembly",
+   "match": "not_provided",
+   "vendor_standard": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "certificate_no": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "issuer": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "expiry": {
+    "value": null,
+    "confidence": 0.2,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "note": "Nothing in the email or spreadsheet mentions a quality-management-system certification; the ISO 15243 product test report does not cover an ISO 9001 supplier requirement."
+  }
+ ],
+ "history_references": [],
+ "ambiguities": [
+  "Prices are quoted per 'SET (2 PCS)' while the RFQ asks for a per-single-unit price basis — confirm whether USD 54/108/148 is per set or per piece.",
+  "Quantities are stated in sets (20/12/10); confirm these equate to the 40/24/20 nos required.",
+  "No Incoterm or freight basis is stated anywhere (no EXW/FOB/CIF), so landed cost from Singapore is unknown.",
+  "Lead time '4 wks' has no stated basis (ex-works readiness vs delivered to India) and may not meet the 2026-11-18 need-by once shipping is added.",
+  "Payment is LC at sight, not a credit period in days from invoice as requested; no early-payment discount offered.",
+  "No supplier ISO 9001 certificate cited.",
+  "Line amounts and total are unevaluated formulas in the workbook (no cached values)."
+ ]
+}

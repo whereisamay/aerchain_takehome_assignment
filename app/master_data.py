@@ -133,3 +133,9 @@ def _validate() -> None:
 
 
 _validate()
+
+
+# Reference FX rates, stated in the app and applied by Python. The model never supplies a rate.
+FX_RATES = {"INR": 1.0, "USD": 88.40, "EUR": 98.10}
+FX_AS_OF = "22 Sep 2026"
+FX_SOURCE = "reference rates set by the buyer (illustrative, RBI-style)"

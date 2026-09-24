@@ -1,0 +1,399 @@
+{
+ "summary": "Short email reply from Vardhman Industrial Supplies quoting per-piece prices for all three bearing assembly variants (standard, heavy-duty, high-speed) with a 5-week dispatch lead time. No quotation reference, no certifications, and payment/freight terms are left to 'same terms as our last order', which is recorded as a history reference and not resolved.",
+ "vendor_quote_ref": {
+  "value": null,
+  "confidence": 0.9,
+  "source": null,
+  "assumption": null,
+  "region": null
+ },
+ "lines": [
+  {
+   "rfq_line": 0,
+   "vendor_item": "std",
+   "mapping": "inferred",
+   "mapping_note": "'std' abbreviation matched to RFQ line 0 'Standard' variant.",
+   "quoted": true,
+   "unit_price": {
+    "value": "2300",
+    "confidence": 0.95,
+    "source": "email body, line 3",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.95,
+    "source": "email body, line 3 ('std Rs 2300')",
+    "assumption": "'Rs' read as INR.",
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.9,
+    "source": "email body, line 3 ('per pc')",
+    "assumption": "'per pc' applies to the listed prices.",
+    "region": null
+   },
+   "qty_offered": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.7,
+    "source": "email body, line 3 ('Can supply all three types')",
+    "assumption": "Vendor says it can supply all three types; no quantity limitation stated, read as full.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "5 weeks",
+    "confidence": 0.95,
+    "source": "email body, line 3 ('dispatch in 5 weeks')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "dispatch",
+    "confidence": 0.9,
+    "source": "email body, line 3 ('dispatch in 5 weeks')",
+    "assumption": null,
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "Price stated per pc."
+  },
+  {
+   "rfq_line": 1,
+   "vendor_item": "heavy",
+   "mapping": "inferred",
+   "mapping_note": "'heavy' matched to RFQ line 1 'Heavy-duty' variant.",
+   "quoted": true,
+   "unit_price": {
+    "value": "4700",
+    "confidence": 0.95,
+    "source": "email body, line 3",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.85,
+    "source": "email body, line 3 ('std Rs 2300, heavy 4700')",
+    "assumption": "Currency 'Rs' stated once at the start of the price list and taken to apply to all three prices.",
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.9,
+    "source": "email body, line 3 ('per pc')",
+    "assumption": "'per pc' applies to the listed prices.",
+    "region": null
+   },
+   "qty_offered": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.7,
+    "source": "email body, line 3 ('Can supply all three types')",
+    "assumption": "Vendor says it can supply all three types; no quantity limitation stated, read as full.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "5 weeks",
+    "confidence": 0.95,
+    "source": "email body, line 3 ('dispatch in 5 weeks')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "dispatch",
+    "confidence": 0.9,
+    "source": "email body, line 3 ('dispatch in 5 weeks')",
+    "assumption": null,
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "Price stated per pc."
+  },
+  {
+   "rfq_line": 2,
+   "vendor_item": "high speed",
+   "mapping": "inferred",
+   "mapping_note": "'high speed' matched to RFQ line 2 'High-speed' variant.",
+   "quoted": true,
+   "unit_price": {
+    "value": "6350",
+    "confidence": 0.95,
+    "source": "email body, line 3",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.85,
+    "source": "email body, line 3 ('std Rs 2300, ... high speed 6350 per pc')",
+    "assumption": "Currency 'Rs' stated once at the start of the price list and taken to apply to all three prices.",
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.9,
+    "source": "email body, line 3 ('per pc')",
+    "assumption": "'per pc' applies to the listed prices.",
+    "region": null
+   },
+   "qty_offered": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.7,
+    "source": "email body, line 3 ('Can supply all three types')",
+    "assumption": "Vendor says it can supply all three types; no quantity limitation stated, read as full.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "5 weeks",
+    "confidence": 0.95,
+    "source": "email body, line 3 ('dispatch in 5 weeks')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "dispatch",
+    "confidence": 0.9,
+    "source": "email body, line 3 ('dispatch in 5 weeks')",
+    "assumption": null,
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "Price stated per pc."
+  }
+ ],
+ "credit": {
+  "text": {
+   "value": "Same terms as our last order.",
+   "confidence": 0.95,
+   "source": "email body, line 3",
+   "assumption": null,
+   "region": null
+  },
+  "kind": "refers_to_history",
+  "net_days": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "discount_pct": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "discount_days": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "advance_pct": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "balance_event": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "freight": {
+  "text": {
+   "value": null,
+   "confidence": 0.85,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "kind": "unstated",
+  "threshold_amount": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_currency": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "volume_discount": {
+  "text": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "pct": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_amount": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_currency": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "validity": {
+  "value": null,
+  "confidence": 0.9,
+  "source": null,
+  "assumption": null,
+  "region": null
+ },
+ "cert_assessment": [
+  {
+   "required": "ISO 15243",
+   "material": "Bearing assembly",
+   "match": "not_provided",
+   "vendor_standard": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "certificate_no": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "issuer": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "expiry": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "note": "The email makes no reference to any product standard or test report."
+  },
+  {
+   "required": "supplier ISO 9001",
+   "material": "Bearing assembly",
+   "match": "not_provided",
+   "vendor_standard": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "certificate_no": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "issuer": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "expiry": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "note": "No quality-system certification is mentioned anywhere in the email."
+  }
+ ],
+ "history_references": [
+  {
+   "quote": "Same terms as our last order.",
+   "source": "email body, line 3",
+   "affects": [
+    "credit",
+    "freight"
+   ]
+  }
+ ],
+ "ambiguities": [
+  "No quotation reference number given.",
+  "'Same terms as our last order' — credit period, early-payment discount and freight basis are not stated and must be confirmed.",
+  "Quantities offered are not stated; 'Can supply all three types' does not confirm the full RFQ quantities of 40 / 24 / 20 nos.",
+  "Currency symbol 'Rs' appears only before the first price; confirm heavy-duty 4700 and high-speed 6350 are also INR.",
+  "Lead time given as 'dispatch in 5 weeks' — confirm whether this is ex-works readiness or delivery to site, against the 2026-11-18 need-by date.",
+  "Quote validity period not stated.",
+  "Taxes/GST applicability not stated."
+ ]
+}

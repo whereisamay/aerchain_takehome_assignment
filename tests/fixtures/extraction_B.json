@@ -1,0 +1,387 @@
+{
+ "summary": "Extraction of Nordlager Antriebstechnik GmbH quotation NL-Q-2026-3318 (PDF attachment) covering all three RFQ lines with EUR unit prices ex works Stuttgart. Notable: quality reference is to DIN 628 / DIN ISO 281 rather than ISO 15243, and all commercial terms (payment, freight, rebate, validity) are in the small print footer.",
+ "vendor_quote_ref": {
+  "value": "NL-Q-2026-3318",
+  "confidence": 0.98,
+  "source": "page 1, heading 'Angebot / Quotation NL-Q-2026-3318'",
+  "assumption": null,
+  "region": null
+ },
+ "lines": [
+  {
+   "rfq_line": 0,
+   "vendor_item": "NL-LE 6212-G — Lagereinheit Standard, Rillenkugellager 6212",
+   "mapping": "stated",
+   "mapping_note": "Description explicitly says 'Standard', matching RFQ line 0 variant Standard.",
+   "quoted": true,
+   "unit_price": {
+    "value": "24.50",
+    "confidence": 0.97,
+    "source": "page 1, table row Pos. 10, column 'Unit price EUR'",
+    "assumption": "German decimal comma read as decimal point",
+    "region": null
+   },
+   "currency": {
+    "value": "EUR",
+    "confidence": 0.98,
+    "source": "page 1, table column header 'Unit price EUR'",
+    "assumption": null,
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.9,
+    "source": "page 1, table columns 'Qty' = 40 and 'Unit price EUR' = 24,50 with Total 980,00",
+    "assumption": "Price column is headed 'Unit price', no set/pair packaging stated, so one priced unit = one bearing assembly",
+    "region": null
+   },
+   "qty_offered": {
+    "value": "40",
+    "confidence": 0.97,
+    "source": "page 1, table row Pos. 10, column 'Qty'",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.9,
+    "source": "page 1, table row Pos. 10, column 'Qty' (40 offered against RFQ 40)",
+    "assumption": "Full quantity offered with no exceptions noted",
+    "region": null
+   },
+   "lead_time": {
+    "value": "6 weeks after receipt of order",
+    "confidence": 0.95,
+    "source": "page 1, line 'Delivery: 6 weeks after receipt of order, ex works.'",
+    "assumption": "Single delivery statement applies to all positions",
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "ex_works",
+    "confidence": 0.95,
+    "source": "page 1, line 'Delivery: 6 weeks after receipt of order, ex works.'",
+    "assumption": null,
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": ""
+  },
+  {
+   "rfq_line": 1,
+   "vendor_item": "NL-LE NU316-S — Lagereinheit Schwerlast, Zylinderrollenlager NU316",
+   "mapping": "inferred",
+   "mapping_note": "'Schwerlast' is German for heavy-duty/heavy-load; cylindrical roller bearing unit matches RFQ line 1 Heavy-duty. Quantity 24 also matches.",
+   "quoted": true,
+   "unit_price": {
+    "value": "49.00",
+    "confidence": 0.97,
+    "source": "page 1, table row Pos. 20, column 'Unit price EUR'",
+    "assumption": "German decimal comma read as decimal point",
+    "region": null
+   },
+   "currency": {
+    "value": "EUR",
+    "confidence": 0.98,
+    "source": "page 1, table column header 'Unit price EUR'",
+    "assumption": null,
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.9,
+    "source": "page 1, table columns 'Qty' = 24 and 'Unit price EUR' = 49,00 with Total 1.176,00",
+    "assumption": "Price column headed 'Unit price'; no set/pair packaging stated",
+    "region": null
+   },
+   "qty_offered": {
+    "value": "24",
+    "confidence": 0.97,
+    "source": "page 1, table row Pos. 20, column 'Qty'",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.9,
+    "source": "page 1, table row Pos. 20, column 'Qty' (24 offered against RFQ 24)",
+    "assumption": "Full quantity offered with no exceptions noted",
+    "region": null
+   },
+   "lead_time": {
+    "value": "6 weeks after receipt of order",
+    "confidence": 0.95,
+    "source": "page 1, line 'Delivery: 6 weeks after receipt of order, ex works.'",
+    "assumption": "Single delivery statement applies to all positions",
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "ex_works",
+    "confidence": 0.95,
+    "source": "page 1, line 'Delivery: 6 weeks after receipt of order, ex works.'",
+    "assumption": null,
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": ""
+  },
+  {
+   "rfq_line": 2,
+   "vendor_item": "NL-LE 7014-HG — Lagereinheit Hochgeschwindigkeit, Schrägkugellager 7014",
+   "mapping": "inferred",
+   "mapping_note": "'Hochgeschwindigkeit' is German for high-speed; angular contact ball bearing unit matches RFQ line 2 High-speed. Quantity 20 also matches.",
+   "quoted": true,
+   "unit_price": {
+    "value": "66.00",
+    "confidence": 0.97,
+    "source": "page 1, table row Pos. 30, column 'Unit price EUR'",
+    "assumption": "German decimal comma read as decimal point",
+    "region": null
+   },
+   "currency": {
+    "value": "EUR",
+    "confidence": 0.98,
+    "source": "page 1, table column header 'Unit price EUR'",
+    "assumption": null,
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.9,
+    "source": "page 1, table columns 'Qty' = 20 and 'Unit price EUR' = 66,00 with Total 1.320,00",
+    "assumption": "Price column headed 'Unit price'; no set/pair packaging stated",
+    "region": null
+   },
+   "qty_offered": {
+    "value": "20",
+    "confidence": 0.97,
+    "source": "page 1, table row Pos. 30, column 'Qty'",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.9,
+    "source": "page 1, table row Pos. 30, column 'Qty' (20 offered against RFQ 20)",
+    "assumption": "Full quantity offered with no exceptions noted",
+    "region": null
+   },
+   "lead_time": {
+    "value": "6 weeks after receipt of order",
+    "confidence": 0.95,
+    "source": "page 1, line 'Delivery: 6 weeks after receipt of order, ex works.'",
+    "assumption": "Single delivery statement applies to all positions",
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "ex_works",
+    "confidence": 0.95,
+    "source": "page 1, line 'Delivery: 6 weeks after receipt of order, ex works.'",
+    "assumption": null,
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": ""
+  }
+ ],
+ "credit": {
+  "text": {
+   "value": "Terms of payment: 2% discount if paid within 10 days of invoice date, otherwise net 30 days from invoice date.",
+   "confidence": 0.93,
+   "source": "page 1, small print at foot",
+   "assumption": null,
+   "region": null
+  },
+  "kind": "discount_then_net",
+  "net_days": {
+   "value": "30",
+   "confidence": 0.93,
+   "source": "page 1, small print at foot ('otherwise net 30 days from invoice date')",
+   "assumption": null,
+   "region": null
+  },
+  "discount_pct": {
+   "value": "2",
+   "confidence": 0.93,
+   "source": "page 1, small print at foot ('2% discount if paid within 10 days of invoice date')",
+   "assumption": null,
+   "region": null
+  },
+  "discount_days": {
+   "value": "10",
+   "confidence": 0.93,
+   "source": "page 1, small print at foot ('within 10 days of invoice date')",
+   "assumption": null,
+   "region": null
+  },
+  "advance_pct": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "balance_event": {
+   "value": "invoice",
+   "confidence": 0.93,
+   "source": "page 1, small print at foot ('net 30 days from invoice date')",
+   "assumption": null,
+   "region": null
+  }
+ },
+ "freight": {
+  "text": {
+   "value": "Prices EXW Stuttgart (Incoterms® 2020), incl. standard export packing; freight, insurance, customs clearance and import duties for buyer's account.",
+   "confidence": 0.93,
+   "source": "page 1, small print at foot",
+   "assumption": null,
+   "region": null
+  },
+  "kind": "ex_works",
+  "threshold_amount": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_currency": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "volume_discount": {
+  "text": {
+   "value": "A volume rebate of 3% applies to single orders exceeding EUR 5.000 net.",
+   "confidence": 0.92,
+   "source": "page 1, small print at foot",
+   "assumption": null,
+   "region": null
+  },
+  "pct": {
+   "value": "3",
+   "confidence": 0.92,
+   "source": "page 1, small print at foot",
+   "assumption": null,
+   "region": null
+  },
+  "threshold_amount": {
+   "value": "5000",
+   "confidence": 0.9,
+   "source": "page 1, small print at foot ('exceeding EUR 5.000 net')",
+   "assumption": "German thousands separator: '5.000' read as 5000",
+   "region": null
+  },
+  "threshold_currency": {
+   "value": "EUR",
+   "confidence": 0.93,
+   "source": "page 1, small print at foot",
+   "assumption": null,
+   "region": null
+  }
+ },
+ "validity": {
+  "value": "Offer valid 45 days",
+  "confidence": 0.92,
+  "source": "page 1, small print at foot",
+  "assumption": null,
+  "region": null
+ },
+ "cert_assessment": [
+  {
+   "required": "ISO 15243",
+   "material": "Bearing assembly",
+   "match": "near_equivalent",
+   "vendor_standard": {
+    "value": "DIN 628 and DIN ISO 281",
+    "confidence": 0.93,
+    "source": "page 1, paragraph 'Quality: All bearing units are manufactured and tested in accordance with DIN 628 and DIN ISO 281.'",
+    "assumption": null,
+    "region": null
+   },
+   "certificate_no": {
+    "value": null,
+    "confidence": 0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "issuer": {
+    "value": null,
+    "confidence": 0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "expiry": {
+    "value": null,
+    "confidence": 0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "note": "Vendor cites DIN 628 (angular contact ball bearings) and DIN ISO 281 (dynamic load ratings/rating life) — related rolling bearing standards but not ISO 15243 (bearing damage and failure classification), so near_equivalent, not exact."
+  },
+  {
+   "required": "supplier ISO 9001",
+   "material": "Bearing assembly",
+   "match": "exact",
+   "vendor_standard": {
+    "value": "ISO 9001:2015",
+    "confidence": 0.95,
+    "source": "page 1, paragraph 'Our company holds ISO 9001:2015 certification'",
+    "assumption": null,
+    "region": null
+   },
+   "certificate_no": {
+    "value": "074512 QM15",
+    "confidence": 0.93,
+    "source": "page 1, paragraph 'DQS certificate 074512 QM15'",
+    "assumption": null,
+    "region": null
+   },
+   "issuer": {
+    "value": "DQS",
+    "confidence": 0.93,
+    "source": "page 1, paragraph 'DQS certificate 074512 QM15'",
+    "assumption": null,
+    "region": null
+   },
+   "expiry": {
+    "value": "2028-05-31",
+    "confidence": 0.93,
+    "source": "page 1, paragraph 'valid until 31.05.2028'",
+    "assumption": "German date format DD.MM.YYYY converted to ISO format",
+    "region": null
+   },
+   "note": "Vendor states its own company holds ISO 9001:2015 certification with certificate number, issuer and validity — matches the supplier quality-system requirement exactly."
+  }
+ ],
+ "history_references": [],
+ "ambiguities": [
+  "Quality reference is to DIN 628 / DIN ISO 281; no ISO 15243 conformity is stated — confirm whether ISO 15243 can be certified.",
+  "Prices are EXW Stuttgart with freight, insurance, customs and duties for buyer's account, whereas lead time '6 weeks after receipt of order, ex works' excludes transit to Pune — delivered date against need-by 2026-11-18 must be assessed separately.",
+  "Whether the 3% volume rebate on orders exceeding EUR 5.000 net applies to the combined order (Summe 3.476,00 as quoted is below the threshold).",
+  "The offer does not state VAT/GST treatment or whether unit prices are per single bearing assembly explicitly (inferred from 'Unit price' column against Qty)."
+ ]
+}

@@ -1,0 +1,389 @@
+{
+ "summary": "Extraction of Shreeji Bearings & Transmission Pvt Ltd offer SBT/OF/26-27/0642 (attachment 'vendor_A_Shreeji_offer.xlsx', sheet 'Offer') against RFQ-2026-MCH-005. All three RFQ lines are answered, but the high-speed item is only partially available (12 of 20 nos in 5 weeks, balance 8 nos in 11 weeks) and item codes are the vendor's catalogue codes, so variant mapping was inferred from the descriptions.",
+ "vendor_quote_ref": {
+  "value": "SBT/OF/26-27/0642",
+  "confidence": 0.97,
+  "source": "Offer!A4",
+  "assumption": null,
+  "region": null
+ },
+ "lines": [
+  {
+   "rfq_line": 0,
+   "vendor_item": "SBT-6212-2RS — Deep groove ball brg assy, general duty (6212-2RS/C3), with housing",
+   "mapping": "inferred",
+   "mapping_note": "Description says 'general duty', which corresponds to the RFQ 'Standard' variant; offered qty 40 matches RFQ line 0 qty.",
+   "quoted": true,
+   "unit_price": {
+    "value": "2450",
+    "confidence": 0.96,
+    "source": "Offer!H9 (column 'Net Rate'; same as F9 'Rate (INR)' with 0% discount)",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.96,
+    "source": "Offer!F7 header 'Rate (INR)'",
+    "assumption": null,
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.92,
+    "source": "Offer!E9 ('Nos')",
+    "assumption": "Priced per piece as UOM is 'Nos'.",
+    "region": null
+   },
+   "qty_offered": {
+    "value": "40",
+    "confidence": 0.96,
+    "source": "Offer!D9",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.9,
+    "source": "Offer!D9 (40 Nos offered against RFQ qty 40), no restrictive remark in J9",
+    "assumption": "Offered qty equals RFQ qty and no remark limits it.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "5 weeks",
+    "confidence": 0.96,
+    "source": "Offer!I9",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "delivered",
+    "confidence": 0.6,
+    "source": "Offer!C13 ('FOR your Chakan plant — freight & transit insurance included')",
+    "assumption": "Basis not stated against the lead time; inferred from the FOR-destination price basis.",
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "0% discount shown in G9; housing included per note in C18."
+  },
+  {
+   "rfq_line": 1,
+   "vendor_item": "SBT-NU316-HD — Cyl. roller brg assy, heavy duty (NU316 ECJ/C3), with housing",
+   "mapping": "inferred",
+   "mapping_note": "Description and item code suffix say 'heavy duty'/'HD', matching the RFQ 'Heavy-duty' variant; offered qty 24 matches RFQ line 1 qty.",
+   "quoted": true,
+   "unit_price": {
+    "value": "4820",
+    "confidence": 0.96,
+    "source": "Offer!H8 (column 'Net Rate'; same as F8 'Rate (INR)' with 0% discount)",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.96,
+    "source": "Offer!F7 header 'Rate (INR)'",
+    "assumption": null,
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.92,
+    "source": "Offer!E8 ('Nos')",
+    "assumption": "Priced per piece as UOM is 'Nos'.",
+    "region": null
+   },
+   "qty_offered": {
+    "value": "24",
+    "confidence": 0.96,
+    "source": "Offer!D8",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.9,
+    "source": "Offer!D8 (24 Nos offered against RFQ qty 24), no restrictive remark in J8",
+    "assumption": "Offered qty equals RFQ qty and no remark limits it.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "5 weeks",
+    "confidence": 0.96,
+    "source": "Offer!I8",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "delivered",
+    "confidence": 0.6,
+    "source": "Offer!C13 ('FOR your Chakan plant — freight & transit insurance included')",
+    "assumption": "Basis not stated against the lead time; inferred from the FOR-destination price basis.",
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "0% discount shown in G8; housing included per note in C18."
+  },
+  {
+   "rfq_line": 2,
+   "vendor_item": "SBT-7014-HS — Angular contact brg assy, high speed (7014 ACD/P4A)",
+   "mapping": "inferred",
+   "mapping_note": "Description and code suffix say 'high speed'/'HS', matching the RFQ 'High-speed' variant.",
+   "quoted": true,
+   "unit_price": {
+    "value": "6700",
+    "confidence": 0.96,
+    "source": "Offer!H10 (column 'Net Rate'; same as F10 'Rate (INR)' with 0% discount)",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.96,
+    "source": "Offer!F7 header 'Rate (INR)'",
+    "assumption": null,
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.92,
+    "source": "Offer!E10 ('Nos')",
+    "assumption": "Priced per piece as UOM is 'Nos'.",
+    "region": null
+   },
+   "qty_offered": {
+    "value": "12",
+    "confidence": 0.96,
+    "source": "Offer!D10",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "partial",
+    "confidence": 0.95,
+    "source": "Offer!J10 ('Can offer 60% of reqd qty (12 of 20) in 5 wks. Balance 8 nos in 11 wks.')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time": {
+    "value": "5 weeks",
+    "confidence": 0.96,
+    "source": "Offer!I10",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "delivered",
+    "confidence": 0.6,
+    "source": "Offer!C13 ('FOR your Chakan plant — freight & transit insurance included')",
+    "assumption": "Basis not stated against the lead time; inferred from the FOR-destination price basis.",
+    "region": null
+   },
+   "balance": {
+    "value": "Can offer 60% of reqd qty (12 of 20) in 5 wks. Balance 8 nos in 11 wks.",
+    "confidence": 0.95,
+    "source": "Offer!J10",
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "Housing not mentioned in this description, though note C18 says housing included in all assemblies."
+  }
+ ],
+ "credit": {
+  "text": {
+   "value": "45 days net",
+   "confidence": 0.96,
+   "source": "Offer!C14 (row label 'Payment', Offer!B14)",
+   "assumption": null,
+   "region": null
+  },
+  "kind": "net_days",
+  "net_days": {
+   "value": "45",
+   "confidence": 0.95,
+   "source": "Offer!C14",
+   "assumption": null,
+   "region": null
+  },
+  "discount_pct": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "discount_days": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "advance_pct": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "balance_event": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": "Vendor does not state what the 45 days run from.",
+   "region": null
+  }
+ },
+ "freight": {
+  "text": {
+   "value": "FOR your Chakan plant — freight & transit insurance included. GST @18% extra.",
+   "confidence": 0.96,
+   "source": "Offer!C13 (row label 'Price basis', Offer!B13)",
+   "assumption": null,
+   "region": null
+  },
+  "kind": "delivered",
+  "threshold_amount": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_currency": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "volume_discount": {
+  "text": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "pct": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_amount": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_currency": {
+   "value": null,
+   "confidence": 0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "validity": {
+  "value": "60 days",
+  "confidence": 0.96,
+  "source": "Offer!C15 (row label 'Validity', Offer!B15)",
+  "assumption": null,
+  "region": null
+ },
+ "cert_assessment": [
+  {
+   "required": "ISO 15243",
+   "material": "Bearing assembly",
+   "match": "exact",
+   "vendor_standard": {
+    "value": "ISO 15243",
+    "confidence": 0.95,
+    "source": "Offer!C16 ('Bearings tested & classified per ISO 15243')",
+    "assumption": null,
+    "region": null
+   },
+   "certificate_no": {
+    "value": "SBT/QC/15243/2026-118",
+    "confidence": 0.95,
+    "source": "Offer!C16",
+    "assumption": null,
+    "region": null
+   },
+   "issuer": {
+    "value": null,
+    "confidence": 0,
+    "source": null,
+    "assumption": "Certificate number prefix suggests vendor's own QC, but no issuer is stated.",
+    "region": null
+   },
+   "expiry": {
+    "value": "2028-03-31",
+    "confidence": 0.93,
+    "source": "Offer!C16 ('valid to 31-Mar-2028')",
+    "assumption": null,
+    "region": null
+   },
+   "note": "Vendor cites the exact required standard ISO 15243 with a test certificate number and validity date; issuing body not named."
+  },
+  {
+   "required": "supplier ISO 9001",
+   "material": "Bearing assembly",
+   "match": "exact",
+   "vendor_standard": {
+    "value": "ISO 9001:2015",
+    "confidence": 0.95,
+    "source": "Offer!C17 (row label 'QMS', Offer!B17)",
+    "assumption": null,
+    "region": null
+   },
+   "certificate_no": {
+    "value": "IN-QMS-44871",
+    "confidence": 0.95,
+    "source": "Offer!C17",
+    "assumption": null,
+    "region": null
+   },
+   "issuer": {
+    "value": "TUV Nord",
+    "confidence": 0.94,
+    "source": "Offer!C17",
+    "assumption": null,
+    "region": null
+   },
+   "expiry": {
+    "value": "2028-01-14",
+    "confidence": 0.93,
+    "source": "Offer!C17 ('valid to 14-Jan-2028')",
+    "assumption": null,
+    "region": null
+   },
+   "note": "Vendor holds the required supplier quality-system certification ISO 9001:2015 from TUV Nord; this is the very standard required."
+  }
+ ],
+ "history_references": [],
+ "ambiguities": [
+  "High-speed item (RFQ line 2): only 12 of 20 nos in 5 weeks, balance 8 nos in 11 weeks — need-by 2026-11-18 may not be met for the balance.",
+  "Lead time basis is not stated against the 5-week lead times; only the price basis is FOR Chakan, so whether 5 weeks is to delivery or ex-works needs confirmation.",
+  "Payment term '45 days net' does not state the start event (invoice date vs GRN), while the RFQ asked for days from invoice date.",
+  "Prices are exclusive of GST @18% — confirm landed comparison basis.",
+  "ISO 15243 test certificate SBT/QC/15243/2026-118 names no issuing body; confirm whether it is an in-house or third-party report.",
+  "Description for SBT-7014-HS does not mention housing, though note C18 states housing is included in all assemblies — confirm scope."
+ ]
+}

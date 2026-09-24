@@ -1,0 +1,521 @@
+{
+ "summary": "This is an extraction of Sri Lakshmi Bearing House's rate card (photograph attachment) covering bearing assemblies, from which three SKUs plausibly answer the three RFQ variants. The document is a general price list rather than a quotation: it carries no offer number, no quantities and no availability statement, is photographed at an angle so that description/series/rate columns are visually offset, and adds P&F 1% plus GST 18% on top of the listed per-piece rates.",
+ "vendor_quote_ref": {
+  "value": null,
+  "confidence": 0.9,
+  "source": null,
+  "assumption": "The document is a rate card headed 'RATE CARD — BEARING ASSEMBLIES (Effective 1 September 2026)' and states no quotation/offer number.",
+  "region": null
+ },
+ "lines": [
+  {
+   "rfq_line": 0,
+   "vendor_item": "SL-A6212 — General duty DGBB assembly with housing, Series 6212",
+   "mapping": "inferred",
+   "mapping_note": "RFQ 'Standard' variant matched to the 'General duty' DGBB assembly SKU; the card offers light duty, medium duty, general duty, heavy duty and high speed tiers, and 'general duty' is the standard-grade assembly.",
+   "quoted": true,
+   "unit_price": {
+    "value": "2150",
+    "confidence": 0.82,
+    "source": "photo, table row SL-A6212, column 'Rate ₹ / pc'",
+    "assumption": "Card is photographed skewed; rate read by following the row band from SKU SL-A6212 / series 6212 across to the rate column (third data row of the rate column: 2,150).",
+    "region": [
+     0.665,
+     0.355,
+     0.805,
+     0.387
+    ]
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.95,
+    "source": "photo, table header column 'Rate ₹ / pc'",
+    "assumption": "₹ symbol read as INR.",
+    "region": [
+     0.66,
+     0.285,
+     0.81,
+     0.315
+    ]
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.93,
+    "source": "photo, table header column 'Rate ₹ / pc'",
+    "assumption": "'/ pc' taken as price per single piece.",
+    "region": [
+     0.66,
+     0.285,
+     0.81,
+     0.315
+    ]
+   },
+   "qty_offered": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": "Rate card lists no quantities.",
+    "region": null
+   },
+   "availability": {
+    "value": null,
+    "confidence": 0.85,
+    "source": null,
+    "assumption": "Card states a lead time for assemblies but makes no statement of availability against RFQ quantities.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "12-13 weeks from PO",
+    "confidence": 0.9,
+    "source": "photo, first footer bullet: 'Standard lead time for assemblies: 12–13 weeks from PO. Loose bearings ex-stock.'",
+    "assumption": null,
+    "region": [
+     0.18,
+     0.445,
+     0.76,
+     0.478
+    ]
+   },
+   "lead_time_basis": {
+    "value": "ex_works",
+    "confidence": 0.6,
+    "source": "photo, footer bullets: 'Standard lead time for assemblies: 12–13 weeks from PO' with 'Prices ex-godown Chennai ... Freight to pay.'",
+    "assumption": "Basis not explicitly stated; inferred as ready at vendor because prices are ex-godown Chennai and freight is to pay.",
+    "region": [
+     0.18,
+     0.445,
+     0.79,
+     0.515
+    ]
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": "Not a partial offer; no balance statement.",
+    "region": null
+   },
+   "remarks": "Rate excludes Packing & forwarding 1% and GST 18%."
+  },
+  {
+   "rfq_line": 1,
+   "vendor_item": "SL-ANU316 — Heavy duty CRB assembly with housing, Series NU316",
+   "mapping": "inferred",
+   "mapping_note": "RFQ 'Heavy-duty' variant matched to SKU described as 'Heavy duty CRB assembly with housing'.",
+   "quoted": true,
+   "unit_price": {
+    "value": "4300",
+    "confidence": 0.8,
+    "source": "photo, table row SL-ANU316, column 'Rate ₹ / pc'",
+    "assumption": "Skewed photograph; rate read as the fifth value in the rate column (4,300), aligned by row band with SKU SL-ANU316 / series NU316.",
+    "region": [
+     0.665,
+     0.392,
+     0.805,
+     0.425
+    ]
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.95,
+    "source": "photo, table header column 'Rate ₹ / pc'",
+    "assumption": "₹ symbol read as INR.",
+    "region": [
+     0.66,
+     0.285,
+     0.81,
+     0.315
+    ]
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.93,
+    "source": "photo, table header column 'Rate ₹ / pc'",
+    "assumption": "'/ pc' taken as price per single piece.",
+    "region": [
+     0.66,
+     0.285,
+     0.81,
+     0.315
+    ]
+   },
+   "qty_offered": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": "Rate card lists no quantities.",
+    "region": null
+   },
+   "availability": {
+    "value": null,
+    "confidence": 0.85,
+    "source": null,
+    "assumption": "No availability statement per line.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "12-13 weeks from PO",
+    "confidence": 0.9,
+    "source": "photo, first footer bullet: 'Standard lead time for assemblies: 12–13 weeks from PO. Loose bearings ex-stock.'",
+    "assumption": null,
+    "region": [
+     0.18,
+     0.445,
+     0.76,
+     0.478
+    ]
+   },
+   "lead_time_basis": {
+    "value": "ex_works",
+    "confidence": 0.6,
+    "source": "photo, footer bullets: lead time 'from PO' together with 'Prices ex-godown Chennai ... Freight to pay.'",
+    "assumption": "Basis inferred from ex-godown pricing and freight to pay; not stated explicitly.",
+    "region": [
+     0.18,
+     0.445,
+     0.79,
+     0.515
+    ]
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": "Not a partial offer; no balance statement.",
+    "region": null
+   },
+   "remarks": "Rate excludes Packing & forwarding 1% and GST 18%."
+  },
+  {
+   "rfq_line": 2,
+   "vendor_item": "SL-A7014P4 — High speed ACBB assembly, P4 precision, Series 7014",
+   "mapping": "inferred",
+   "mapping_note": "RFQ 'High-speed' variant matched to SKU described as 'High speed ACBB assembly, P4 precision'.",
+   "quoted": true,
+   "unit_price": {
+    "value": "5900",
+    "confidence": 0.8,
+    "source": "photo, table row SL-A7014P4, column 'Rate ₹ / pc'",
+    "assumption": "Skewed photograph; rate read as the sixth value in the rate column (5,900), aligned by row band with SKU SL-A7014P4 / series 7014.",
+    "region": [
+     0.665,
+     0.413,
+     0.805,
+     0.447
+    ]
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.95,
+    "source": "photo, table header column 'Rate ₹ / pc'",
+    "assumption": "₹ symbol read as INR.",
+    "region": [
+     0.66,
+     0.285,
+     0.81,
+     0.315
+    ]
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.93,
+    "source": "photo, table header column 'Rate ₹ / pc'",
+    "assumption": "'/ pc' taken as price per single piece.",
+    "region": [
+     0.66,
+     0.285,
+     0.81,
+     0.315
+    ]
+   },
+   "qty_offered": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": "Rate card lists no quantities.",
+    "region": null
+   },
+   "availability": {
+    "value": null,
+    "confidence": 0.85,
+    "source": null,
+    "assumption": "No availability statement per line.",
+    "region": null
+   },
+   "lead_time": {
+    "value": "12-13 weeks from PO",
+    "confidence": 0.9,
+    "source": "photo, first footer bullet: 'Standard lead time for assemblies: 12–13 weeks from PO. Loose bearings ex-stock.'",
+    "assumption": null,
+    "region": [
+     0.18,
+     0.445,
+     0.76,
+     0.478
+    ]
+   },
+   "lead_time_basis": {
+    "value": "ex_works",
+    "confidence": 0.6,
+    "source": "photo, footer bullets: lead time 'from PO' together with 'Prices ex-godown Chennai ... Freight to pay.'",
+    "assumption": "Basis inferred from ex-godown pricing and freight to pay; not stated explicitly.",
+    "region": [
+     0.18,
+     0.445,
+     0.79,
+     0.515
+    ]
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.9,
+    "source": null,
+    "assumption": "Not a partial offer; no balance statement.",
+    "region": null
+   },
+   "remarks": "Rate excludes Packing & forwarding 1% and GST 18%."
+  }
+ ],
+ "credit": {
+  "text": {
+   "value": "Payment: 30 days from GRN.",
+   "confidence": 0.93,
+   "source": "photo, second footer bullet",
+   "assumption": null,
+   "region": [
+    0.18,
+    0.468,
+    0.62,
+    0.495
+   ]
+  },
+  "kind": "days_from_grn",
+  "net_days": {
+   "value": "30",
+   "confidence": 0.93,
+   "source": "photo, second footer bullet 'Payment: 30 days from GRN.'",
+   "assumption": null,
+   "region": [
+    0.18,
+    0.468,
+    0.62,
+    0.495
+   ]
+  },
+  "discount_pct": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": "No early-payment discount stated.",
+   "region": null
+  },
+  "discount_days": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "advance_pct": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "balance_event": {
+   "value": "grn",
+   "confidence": 0.92,
+   "source": "photo, second footer bullet 'Payment: 30 days from GRN.'",
+   "assumption": null,
+   "region": [
+    0.18,
+    0.468,
+    0.62,
+    0.495
+   ]
+  }
+ },
+ "freight": {
+  "text": {
+   "value": "Prices ex-godown Chennai. Packing & forwarding 1%, GST 18% extra. Freight to pay.",
+   "confidence": 0.9,
+   "source": "photo, third footer bullet",
+   "assumption": null,
+   "region": [
+    0.18,
+    0.485,
+    0.79,
+    0.518
+   ]
+  },
+  "kind": "ex_works",
+  "threshold_amount": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": "No freight threshold stated.",
+   "region": null
+  },
+  "threshold_currency": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "volume_discount": {
+  "text": {
+   "value": null,
+   "confidence": 0.88,
+   "source": null,
+   "assumption": "No volume rebate/discount clause on the card; the only order-value clause is a minimum order value of ₹25,000.",
+   "region": null
+  },
+  "pct": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_amount": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_currency": {
+   "value": null,
+   "confidence": 0.9,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "validity": {
+  "value": "Rates subject to change without notice.",
+  "confidence": 0.9,
+  "source": "photo, last footer bullet",
+  "assumption": "No fixed validity period given; card is headed 'Effective 1 September 2026'.",
+  "region": [
+   0.18,
+   0.518,
+   0.66,
+   0.548
+  ]
+ },
+ "cert_assessment": [
+  {
+   "required": "ISO 15243",
+   "material": "Bearing assembly",
+   "match": "exact",
+   "vendor_standard": {
+    "value": "ISO 15243",
+    "confidence": 0.9,
+    "source": "photo, fourth footer bullet: 'assemblies conform to ISO 15243 (cert SLBH-15243-221, valid to 31-Dec-2027)'",
+    "assumption": null,
+    "region": [
+     0.18,
+     0.5,
+     0.8,
+     0.535
+    ]
+   },
+   "certificate_no": {
+    "value": "SLBH-15243-221",
+    "confidence": 0.85,
+    "source": "photo, fourth footer bullet",
+    "assumption": null,
+    "region": [
+     0.18,
+     0.512,
+     0.6,
+     0.538
+    ]
+   },
+   "issuer": {
+    "value": null,
+    "confidence": 0.85,
+    "source": null,
+    "assumption": "No issuing body named for the ISO 15243 certificate.",
+    "region": null
+   },
+   "expiry": {
+    "value": "2027-12-31",
+    "confidence": 0.87,
+    "source": "photo, fourth footer bullet: 'valid to 31-Dec-2027'",
+    "assumption": "Read '31-Dec-2027' as 2027-12-31.",
+    "region": [
+     0.18,
+     0.512,
+     0.6,
+     0.538
+    ]
+   },
+   "note": "Vendor cites the exact required standard ISO 15243 for the assemblies, with a certificate number and validity date."
+  },
+  {
+   "required": "supplier ISO 9001",
+   "material": "Bearing assembly",
+   "match": "exact",
+   "vendor_standard": {
+    "value": "ISO 9001:2015",
+    "confidence": 0.9,
+    "source": "photo, fourth footer bullet: 'Certifications: ISO 9001:2015 (cert IQC/9001/7741, valid to 30-Jun-2028)'",
+    "assumption": null,
+    "region": [
+     0.18,
+     0.498,
+     0.78,
+     0.525
+    ]
+   },
+   "certificate_no": {
+    "value": "IQC/9001/7741",
+    "confidence": 0.84,
+    "source": "photo, fourth footer bullet",
+    "assumption": "Read from small print; slashes legible.",
+    "region": [
+     0.18,
+     0.498,
+     0.7,
+     0.525
+    ]
+   },
+   "issuer": {
+    "value": null,
+    "confidence": 0.85,
+    "source": null,
+    "assumption": "No certification body named; 'IQC' appears only as part of the certificate number.",
+    "region": null
+   },
+   "expiry": {
+    "value": "2028-06-30",
+    "confidence": 0.87,
+    "source": "photo, fourth footer bullet: 'valid to 30-Jun-2028'",
+    "assumption": "Read '30-Jun-2028' as 2028-06-30.",
+    "region": [
+     0.18,
+     0.498,
+     0.78,
+     0.525
+    ]
+   },
+   "note": "Vendor cites its own ISO 9001:2015 quality-system certificate, which is the required supplier standard."
+  }
+ ],
+ "history_references": [],
+ "ambiguities": [
+  "Document is a general rate card, not a quotation against RFQ-2026-MCH-005: no offer number, no quantities confirmed against the 40/24/20 nos required, and no commitment against the 2026-11-18 need-by date (12-13 weeks from PO).",
+  "Variant mapping is inferred: the card has no 'Standard', 'Heavy-duty' or 'High-speed' RFQ labels; SL-A6212 'General duty', SL-ANU316 'Heavy duty' and SL-A7014P4 'High speed' were matched by description. Buyer should confirm SL-A6212 (and not SL-A6205/SL-A6308) is the intended standard assembly.",
+  "Photograph is skewed, so description/series/rate columns are visually offset from the SKU column; the rate-to-SKU alignment (650/1,180/2,150/890/4,300/5,900/7,800/1,420 in SKU order) should be confirmed with the vendor.",
+  "Prices exclude Packing & forwarding 1% and GST 18% — landed price differs from the listed per-piece rate.",
+  "Credit is '30 days from GRN', not days from invoice date as requested in the RFQ.",
+  "Freight is 'to pay' on ex-godown Chennai prices, so delivery cost to the buyer is unquantified.",
+  "Minimum order value ₹25,000 and 'rates subject to change without notice' mean the prices are not firm for the RFQ validity period.",
+  "The ISO 15243 certificate number SLBH-15243-221 appears to be self-referenced (SLBH = Sri Lakshmi Bearing House); no issuing/accredited body is named for either certificate."
+ ]
+}

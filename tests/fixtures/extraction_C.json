@@ -1,0 +1,389 @@
+{
+ "summary": "Extraction of Kaveri Precision Components' offer letter (Ref KPC/MKT/2026/1187, 30 Sep 2026) covering RFQ lines 0 and 1, with the high-speed variant explicitly declined. Prices and terms are stated in prose paragraphs rather than a table; freight is conditional on a ₹5 lakh despatch value and payment is 50% advance with balance on delivery, which does not match the requested days-from-invoice basis.",
+ "vendor_quote_ref": {
+  "value": "KPC/MKT/2026/1187",
+  "confidence": 0.97,
+  "source": "attachment paragraph 3 ('Ref: KPC/MKT/2026/1187')",
+  "assumption": null,
+  "region": null
+ },
+ "lines": [
+  {
+   "rfq_line": 0,
+   "vendor_item": "standard bearing assembly",
+   "mapping": "stated",
+   "mapping_note": "Letter names the 'standard bearing assembly', matching RFQ variant Standard.",
+   "quoted": true,
+   "unit_price": {
+    "value": "2380",
+    "confidence": 0.96,
+    "source": "attachment paragraph 8 ('Rupees Two Thousand Three Hundred and Eighty only (₹2,380) per assembly')",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.96,
+    "source": "attachment paragraph 8 ('Rupees ... (₹2,380)')",
+    "assumption": "₹/Rupees read as INR.",
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.95,
+    "source": "attachment paragraph 8 ('per assembly')",
+    "assumption": null,
+    "region": null
+   },
+   "qty_offered": {
+    "value": "40",
+    "confidence": 0.95,
+    "source": "attachment paragraph 8 ('for the full quantity of 40 numbers')",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.94,
+    "source": "attachment paragraph 8 ('for the full quantity of 40 numbers')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time": {
+    "value": "within 30 days from the date of your purchase order",
+    "confidence": 0.95,
+    "source": "attachment paragraph 10 ('Delivery of both items can be effected within 30 days from the date of your purchase order')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "delivered",
+    "confidence": 0.6,
+    "source": "attachment paragraph 10 ('Delivery of both items can be effected within 30 days')",
+    "assumption": "Read 'delivery ... effected' as arrival at buyer; the letter does not clearly distinguish dispatch from delivery.",
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "GST extra at applicable rate (paragraph 10)."
+  },
+  {
+   "rfq_line": 1,
+   "vendor_item": "heavy-duty bearing assembly",
+   "mapping": "stated",
+   "mapping_note": "Letter names the 'heavy-duty bearing assembly', matching RFQ variant Heavy-duty.",
+   "quoted": true,
+   "unit_price": {
+    "value": "4650",
+    "confidence": 0.96,
+    "source": "attachment paragraph 8 ('our price is ₹4,650 per assembly')",
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": "INR",
+    "confidence": 0.96,
+    "source": "attachment paragraph 8 ('₹4,650')",
+    "assumption": "₹ read as INR.",
+    "region": null
+   },
+   "units_per_price": {
+    "value": "1",
+    "confidence": 0.95,
+    "source": "attachment paragraph 8 ('per assembly')",
+    "assumption": null,
+    "region": null
+   },
+   "qty_offered": {
+    "value": "24",
+    "confidence": 0.95,
+    "source": "attachment paragraph 8 ('for the full quantity of 24 numbers required by you')",
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "full",
+    "confidence": 0.94,
+    "source": "attachment paragraph 8 ('for the full quantity of 24 numbers')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time": {
+    "value": "within 30 days from the date of your purchase order",
+    "confidence": 0.95,
+    "source": "attachment paragraph 10 ('Delivery of both items can be effected within 30 days from the date of your purchase order')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": "delivered",
+    "confidence": 0.6,
+    "source": "attachment paragraph 10 ('Delivery of both items can be effected within 30 days')",
+    "assumption": "Read 'delivery ... effected' as arrival at buyer; not clearly stated.",
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "GST extra at applicable rate (paragraph 10)."
+  },
+  {
+   "rfq_line": 2,
+   "vendor_item": "high-speed variant",
+   "mapping": "stated",
+   "mapping_note": "Letter explicitly names the high-speed variant as not quoted.",
+   "quoted": false,
+   "unit_price": {
+    "value": null,
+    "confidence": 0.0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "currency": {
+    "value": null,
+    "confidence": 0.0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "units_per_price": {
+    "value": null,
+    "confidence": 0.0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "qty_offered": {
+    "value": null,
+    "confidence": 0.0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "availability": {
+    "value": "not_available",
+    "confidence": 0.95,
+    "source": "attachment paragraph 9 ('we do not presently manufacture the high-speed variant and are therefore unable to quote')",
+    "assumption": null,
+    "region": null
+   },
+   "lead_time": {
+    "value": null,
+    "confidence": 0.0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "lead_time_basis": {
+    "value": null,
+    "confidence": 0.0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "balance": {
+    "value": null,
+    "confidence": 0.0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "remarks": "Vendor hopes to add this range next year (paragraph 9)."
+  }
+ ],
+ "credit": {
+  "text": {
+   "value": "we request 50% advance along with the purchase order, with the balance payable on delivery of material",
+   "confidence": 0.95,
+   "source": "attachment paragraph 10",
+   "assumption": null,
+   "region": null
+  },
+  "kind": "advance_split",
+  "net_days": {
+   "value": null,
+   "confidence": 0.0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "discount_pct": {
+   "value": null,
+   "confidence": 0.0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "discount_days": {
+   "value": null,
+   "confidence": 0.0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "advance_pct": {
+   "value": "50",
+   "confidence": 0.95,
+   "source": "attachment paragraph 10 ('50% advance along with the purchase order')",
+   "assumption": null,
+   "region": null
+  },
+  "balance_event": {
+   "value": "delivery",
+   "confidence": 0.92,
+   "source": "attachment paragraph 10 ('balance payable on delivery of material')",
+   "assumption": null,
+   "region": null
+  }
+ },
+ "freight": {
+  "text": {
+   "value": "Freight will be free to your Chakan plant for any single despatch above ₹5 lakh in value; for despatches below this value, freight will be charged at actuals.",
+   "confidence": 0.95,
+   "source": "attachment paragraph 10",
+   "assumption": null,
+   "region": null
+  },
+  "kind": "conditional",
+  "threshold_amount": {
+   "value": "500000",
+   "confidence": 0.9,
+   "source": "attachment paragraph 10 ('any single despatch above ₹5 lakh in value')",
+   "assumption": "'₹5 lakh' expressed as the plain number 500000 as the schema requires.",
+   "region": null
+  },
+  "threshold_currency": {
+   "value": "INR",
+   "confidence": 0.93,
+   "source": "attachment paragraph 10 ('₹5 lakh')",
+   "assumption": "₹ read as INR.",
+   "region": null
+  }
+ },
+ "volume_discount": {
+  "text": {
+   "value": null,
+   "confidence": 0.0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "pct": {
+   "value": null,
+   "confidence": 0.0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_amount": {
+   "value": null,
+   "confidence": 0.0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  },
+  "threshold_currency": {
+   "value": null,
+   "confidence": 0.0,
+   "source": null,
+   "assumption": null,
+   "region": null
+  }
+ },
+ "validity": {
+  "value": "This offer is valid for 30 days.",
+  "confidence": 0.95,
+  "source": "attachment paragraph 12",
+  "assumption": null,
+  "region": null
+ },
+ "cert_assessment": [
+  {
+   "required": "ISO 15243",
+   "material": "Bearing assembly",
+   "match": "exact",
+   "vendor_standard": {
+    "value": "ISO 15243",
+    "confidence": 0.95,
+    "source": "attachment paragraph 11 ('Our bearing assemblies conform to ISO 15243')",
+    "assumption": null,
+    "region": null
+   },
+   "certificate_no": {
+    "value": "KPC/ISO15243/0457",
+    "confidence": 0.95,
+    "source": "attachment paragraph 11",
+    "assumption": null,
+    "region": null
+   },
+   "issuer": {
+    "value": "Bureau Veritas",
+    "confidence": 0.95,
+    "source": "attachment paragraph 11 ('issued by Bureau Veritas')",
+    "assumption": null,
+    "region": null
+   },
+   "expiry": {
+    "value": "2026-11-12",
+    "confidence": 0.93,
+    "source": "attachment paragraph 11 ('valid until 12 November 2026')",
+    "assumption": "Date reformatted to YYYY-MM-DD.",
+    "region": null
+   },
+   "note": "Vendor cites the exact required standard ISO 15243 with certificate and issuer; note the certificate expires before the 2026-11-18 need-by date."
+  },
+  {
+   "required": "supplier ISO 9001",
+   "material": "Bearing assembly",
+   "match": "exact",
+   "vendor_standard": {
+    "value": "ISO 9001:2015",
+    "confidence": 0.95,
+    "source": "attachment paragraph 11 ('We are also an ISO 9001:2015 certified organisation')",
+    "assumption": null,
+    "region": null
+   },
+   "certificate_no": {
+    "value": "9001-IN-22817",
+    "confidence": 0.95,
+    "source": "attachment paragraph 11 ('certificate 9001-IN-22817')",
+    "assumption": null,
+    "region": null
+   },
+   "issuer": {
+    "value": null,
+    "confidence": 0.0,
+    "source": null,
+    "assumption": null,
+    "region": null
+   },
+   "expiry": {
+    "value": "2027-08-31",
+    "confidence": 0.93,
+    "source": "attachment paragraph 11 ('valid till 31 August 2027')",
+    "assumption": "Date reformatted to YYYY-MM-DD.",
+    "region": null
+   },
+   "note": "Vendor states it is an ISO 9001:2015 certified organisation, i.e. the required supplier quality-system standard; issuing body not named."
+  }
+ ],
+ "history_references": [],
+ "ambiguities": [
+  "Payment terms are 50% advance with balance on delivery, not a credit period in days from invoice date as requested by the RFQ.",
+  "Lead time is stated as 30 days from purchase order date without clarifying whether that is dispatch or delivery at Chakan.",
+  "The ISO 15243 certificate is stated valid only until 12 November 2026, before the 18 November 2026 need-by date — renewal status should be queried.",
+  "Freight is free only for a single despatch above ₹5 lakh; whether the combined order would ship as one despatch is not stated.",
+  "GST is extra at 'the applicable rate' — rate not specified.",
+  "Issuer of the ISO 9001:2015 certificate is not named."
+ ]
+}
