@@ -21,10 +21,14 @@ from docx import Document
 from openpyxl import load_workbook
 from PIL import Image
 
+from auth import get_secret
 from llm import json_call, model_name
 from rfq import standards_in
 
 REVIEW_THRESHOLD = 0.8
+# Thinking effort for extraction. Most of the latency is thinking; 'low' keeps accuracy on the
+# answer-key eval (evals/extraction_eval.py) at a fraction of the time. Override with EXTRACT_EFFORT.
+EXTRACT_EFFORT = "low"
 MAX_IMAGE_PX = 2000
 
 
@@ -308,8 +312,9 @@ def extract(message: dict, rfq: dict, vendor: dict, today: date | None = None) -
         {"type": "text", "text": "Extract this response into the schema. Remember: sources for everything, "
                                  "no arithmetic, \"\" when not stated."}]
     t0 = time.time()
-    raw = json_call(SYSTEM, [{"role": "user", "content": content}], SCHEMA, effort="high", max_tokens=32000,
-                    constrained=False)
+    raw = json_call(SYSTEM, [{"role": "user", "content": content}], SCHEMA, effort=get_secret("EXTRACT_EFFORT") or EXTRACT_EFFORT,
+                    max_tokens=32000, constrained=False,
+                    )
     _to_nulls(raw)
     discarded = enforce_sources(raw)
     return {"raw": raw, "discarded": discarded,

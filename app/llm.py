@@ -30,7 +30,7 @@ def client() -> anthropic.Anthropic:
 
 
 def json_call(system: str, messages: list[dict], schema: dict, effort: str = "medium",
-              max_tokens: int = 16000, constrained: bool = True) -> dict:
+              max_tokens: int = 16000, constrained: bool = True, thinking: bool = True) -> dict:
     """One model call returning an object that matches `schema`.
 
     constrained=True uses structured outputs (grammar-constrained decoding). Large schemas exceed the
@@ -38,11 +38,11 @@ def json_call(system: str, messages: list[dict], schema: dict, effort: str = "me
     it in Python, retrying once with the validation errors."""
     if constrained:
         text = _call(system, messages, effort, max_tokens,
-                     {"format": {"type": "json_schema", "schema": schema}})
+                     {"format": {"type": "json_schema", "schema": schema}}, thinking)
         return json.loads(text)
     sys_prompt = (system + "\n\nRespond with ONE JSON object and nothing else (no prose, no code fences). "
                   "It must validate against this JSON Schema:\n" + json.dumps(schema))
-    text = _call(sys_prompt, messages, effort, max_tokens)
+    text = _call(sys_prompt, messages, effort, max_tokens, None, thinking)
     try:
         obj = _parse(text)
         jsonschema.validate(obj, schema)
@@ -52,7 +52,7 @@ def json_call(system: str, messages: list[dict], schema: dict, effort: str = "me
         retry = messages + [{"role": "assistant", "content": text},
                             {"role": "user", "content": f"That JSON is invalid: {err[:800]}. Return the corrected "
                                                         "complete JSON object only."}]
-        obj = _parse(_call(sys_prompt, retry, effort, max_tokens))
+        obj = _parse(_call(sys_prompt, retry, effort, max_tokens, None, thinking))
         try:
             jsonschema.validate(obj, schema)
         except jsonschema.ValidationError as e2:
@@ -68,9 +68,12 @@ def _parse(text: str) -> dict:
     return json.loads(t[start:end + 1])
 
 
-def _call(system: str, messages: list[dict], effort: str, max_tokens: int, extra_output: dict | None = None) -> str:
+def _call(system: str, messages: list[dict], effort: str, max_tokens: int, extra_output: dict | None = None,
+          thinking: bool = True) -> str:
+    extra = {} if thinking else {"thinking": {"type": "disabled"}}
     try:
         with client().messages.stream(
+            **extra,
             model=model_name(),
             max_tokens=max_tokens,
             system=system,

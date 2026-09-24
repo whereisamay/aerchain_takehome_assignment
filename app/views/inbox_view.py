@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 import db
+import analysis
 import mail
 from state import DEMO_RFQ, ensure_rfqs
 from views.common import transport_note, vendor_names
@@ -49,6 +50,7 @@ def _unmatched(names: dict) -> None:
             c3.write("")
             if c3.button("Assign", key=f"as{r['id']}_b", disabled=vc is None):
                 mail.assign(r["id"], rid, vc)
+                analysis.extract_in_background([{**r, "rfq_id": rid, "vendor_code": vc}])
                 st.rerun()
 
 
@@ -69,12 +71,15 @@ def _upload(names: dict) -> None:
         r = mail.ingest_upload(f.name, f.getvalue())
         if vc and r["status"] == "unmatched":
             mail.assign(r["id"], rid, vc)
+            r = {**r, "rfq_id": rid, "vendor_code": vc}
             st.session_state["inbox_toast"] = f"Added {f.name}, assigned to vendor {vc} / {rid}"
         elif r["status"] == "matched":
             st.session_state["inbox_toast"] = (f"Added {f.name}; matched to vendor {r['vendor_code']} / "
                                                f"{r['rfq_id']} by {METHOD_LABEL[r['match_method']]}")
         else:
             st.session_state["inbox_toast"] = f"Added {f.name} — couldn't match it, so it's in Unmatched"
+        if r.get("vendor_code") and r.get("rfq_id"):
+            analysis.extract_in_background([r])
         st.rerun()
 
 
@@ -92,12 +97,12 @@ def render() -> None:
                       "RFQ-2026-MCH-005 gets the hand-built trap dataset; any other RFQ gets replies from the "
                       "vendor simulator (outside the app) for exactly the items on it."):
         n = mail.deliver_demo_replies()
-        mail.check_inbox()
+        analysis.extract_in_background(mail.check_inbox())
         st.session_state["inbox_toast"] = (f"{n} new message(s) delivered and read" if n
                                            else "No new replies — send an RFQ first, or they already arrived")
         st.rerun()
     if c2.button("Check inbox"):
-        mail.check_inbox()
+        analysis.extract_in_background(mail.check_inbox())
         st.rerun()
 
     _unmatched(names)

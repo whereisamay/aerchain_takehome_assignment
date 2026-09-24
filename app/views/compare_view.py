@@ -33,6 +33,18 @@ def _money(x) -> str:
     return "—" if x is None else f"₹{x:,.2f}"
 
 
+@st.fragment(run_every=4)
+def _wait_for(busy: list[dict]) -> None:
+    """Live progress while responses are read in the background; reloads the page when all are done."""
+    running = analysis.in_progress()
+    left = [m for m in busy if m["id"] in running]
+    if not left:
+        st.rerun(scope="app")
+    st.info(f"Reading {len(left)} response(s) in the background with {model_name()} — vendors "
+            f"{', '.join(sorted(m['vendor_code'] for m in left))}. This usually takes under a minute; the "
+            "comparison fills in automatically.", icon="⏳")
+
+
 def _pick_responses(rfq_id: str) -> list[dict]:
     msgs = analysis.responses_for(rfq_id)
     if not msgs:
@@ -44,31 +56,20 @@ def _pick_responses(rfq_id: str) -> list[dict]:
         "Analyse": True, "Vendor": m["vendor_code"], "Name": names.get(m["vendor_code"], ""),
         "Format": ", ".join(a["name"].rsplit(".", 1)[-1].upper() for a in m["attachments"]) or "email body",
         "Document": ", ".join(a["name"] for a in m["attachments"]) or "(email body only)",
-        "Extracted": m["extracted_at"] or "not yet", "_id": m["id"],
+        "Extracted": m["extracted_at"] or ("reading…" if m["id"] in analysis.in_progress() else "not yet"),
+        "_id": m["id"],
     } for m in msgs])
     picked = st.data_editor(table, hide_index=True, width="stretch", key=f"pick_{rfq_id}",
                             column_config={"_id": None},
                             disabled=[c for c in table if c != "Analyse"])
     chosen = [m for m in msgs if m["id"] in set(picked.loc[picked["Analyse"], "_id"])]
-    todo = [m for m in chosen if not m["extracted"]]
-    c1, c2, _ = st.columns([2, 2, 3])
-    run = c1.button(f"Extract {len(todo)} new response(s)", type="primary", disabled=not todo)
-    rerun = c2.button(f"Re-extract all {len(chosen)} selected", disabled=not chosen)
-    if run or rerun:
-        batch = chosen if rerun else todo
-        with st.status(f"Reading {len(batch)} response(s) with {model_name()} — in parallel, ~30-120 s…",
-                       expanded=True) as status:
-            done = []
-
-            def tick(m, err):
-                done.append(m)
-                status.write(f"{'✅' if not err else '❌'} Vendor {m['vendor_code']}"
-                             + (f" — {err}" if err else "") + f"  ({len(done)}/{len(batch)})")
-
-            results = analysis.run_extractions(batch, on_done=tick)
-            errs = [e for _, e in results if e]
-            status.update(label=f"Extracted {len(batch) - len(errs)}/{len(batch)}", state="error" if errs else
-                          "complete")
+    running = analysis.in_progress()
+    busy = [m for m in chosen if m["id"] in running]
+    todo = [m for m in chosen if not m["extracted"] and m["id"] not in running]
+    if busy:
+        _wait_for(busy)
+    if todo and st.button(f"Extract {len(todo)} new response(s)", type="primary"):
+        analysis.extract_in_background(todo)
         st.rerun()
     return [m for m in chosen if m["extracted"]]
 

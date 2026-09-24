@@ -1,5 +1,6 @@
 """Glue for screen 5: stored extractions, buyer inputs, and the comparison built from them."""
 import json
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
 from datetime import date
@@ -58,6 +59,39 @@ def save_extraction(msg: dict, result: dict) -> None:
                   (msg["id"], msg["rfq_id"], msg["vendor_code"], json.dumps(result, ensure_ascii=False),
                    result["meta"]["extracted_at"]))
         c.execute("DELETE FROM field_reviews WHERE mail_id=?", (msg["id"],))
+
+
+_IN_PROGRESS: set[int] = set()
+_LOCK = threading.Lock()
+
+
+def in_progress() -> set[int]:
+    with _LOCK:
+        return set(_IN_PROGRESS)
+
+
+def extract_in_background(msgs: list[dict]) -> int:
+    """Start extracting matched responses that haven't been read yet, without blocking the page.
+    Called when replies arrive in the inbox, so screen 5 is usually ready by the time it is opened."""
+    done = {e["mail_id"] for e in list_extractions()}
+    msgs = [{**m, "attachments": json.loads(m["attachments"]) if isinstance(m.get("attachments"), str)
+             else m.get("attachments", [])} for m in msgs]
+    with _LOCK:
+        todo = [m for m in msgs if m.get("vendor_code") and m.get("rfq_id") and m["id"] not in done
+                and m["id"] not in _IN_PROGRESS]
+        _IN_PROGRESS.update(m["id"] for m in todo)
+    if not todo:
+        return 0
+
+    def work():
+        try:
+            run_extractions(todo)
+        finally:
+            with _LOCK:
+                _IN_PROGRESS.difference_update(m["id"] for m in todo)
+
+    threading.Thread(target=work, daemon=True).start()
+    return len(todo)
 
 
 def run_extractions(msgs: list[dict], on_done=None) -> list[tuple[dict, str | None]]:
