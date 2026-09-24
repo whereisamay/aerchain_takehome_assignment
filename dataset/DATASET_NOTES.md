@@ -185,6 +185,6 @@ consistent character. It gives a deliberate mix of strong and weak quotes:
 The simulator is the vendors' side of the conversation. The app's extraction and normalisation never
 import it (`tests/test_isolation.py`); they only read the files it writes.
 
-**Planning note:** under the default plan (target 10 Feb 2027) P1 materials are needed on the planned
-PO date itself (week 0 of the build). The RFQ Generator warns about this; only ex-stock offers can
-be on time.
+**Delivery mix:** the simulator sets lead times against the time available before each need-by date —
+A, C and E always fit it (quoting ex-stock when time is short), B, D and F always miss it (F by the most).
+So every simulated RFQ shows some vendors who can deliver and some who can't.

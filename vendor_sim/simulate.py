@@ -6,7 +6,10 @@ C  Kaveri (docx)       prose letter, declines one item, 50% advance, free freigh
                        one certificate expiring just before need-by
 D  Pacific (xlsx)      messy sheet, USD, small parts priced per pack of 2, LC at sight, no freight, no ISO 9001
 E  Vardhman (email)    two sentences, prices only, "same terms as our last order"
-F  Sri Lakshmi (photo) generic rate card, cheapest, but a 12-13 week lead time
+F  Sri Lakshmi (photo) generic rate card, cheapest, but too slow (12+ weeks)
+
+Lead times are set against the time actually available before each need-by date: A, C and E can
+deliver in time, B, D and F cannot — so every RFQ shows a mix of vendors who can and can't deliver.
 """
 import hashlib
 import random
@@ -76,16 +79,18 @@ def _is_supplier_qms(std: str) -> bool:
     return "9001" in s or "ce marking" in s
 
 
+ON_TIME = {"A", "C", "E"}  # these vendors fit the need-by date; B, D and F do not
+
+
 def _weeks_for(code: str, vendor: str, window_days: int) -> tuple[int, int]:
-    """(lead weeks lo, hi) as the vendor would state it. Tight windows: strong vendors offer stock."""
-    typ = TYPICAL_WEEKS.get(code, 6)
-    if window_days <= 7 and vendor in ("A", "C"):
-        return 0, 0  # ex-stock
-    factor = {"A": 0.85, "B": 1.0, "C": 0.8, "D": 0.7, "E": 0.9, "F": 1.9}[vendor]
-    w = max(1, round(typ * factor))
-    if vendor == "F":
-        return max(12, w), max(13, w + 1)
-    return w, w
+    """(lead weeks lo, hi) as the vendor would state it, relative to the time available before need-by.
+    A, C and E always fit (ex-stock when time is short); B, D and F always miss — so every RFQ shows a mix."""
+    if vendor in ON_TIME:
+        w = int(max(window_days, 0) * {"A": 0.75, "C": 0.6, "E": 0.85}[vendor] // 7)
+        return w, w
+    w = -(-max(window_days, 0) * {"B": 1.25, "D": 1.15, "F": 1.6}[vendor] // 7) + 2
+    w = max(int(w), TYPICAL_WEEKS.get(code, 6))
+    return (max(12, w), max(13, w + 1)) if vendor == "F" else (w, w)
 
 
 def _lead_text(lo: int, hi: int, style: str) -> str:
@@ -169,7 +174,8 @@ def _vendor_b(rfq, items, po, out: Path) -> Path:
     t.setStyle(TableStyle([("FONT", (0, 0), (-1, -1), "DejaVu", 8.5), ("FONT", (0, 0), (-1, 0), "DejaVu-Bold", 8.5),
                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#DCE6F2")),
                            ("GRID", (0, 0), (-1, -1), 0.4, colors.grey), ("ALIGN", (2, 0), (-1, -1), "RIGHT")]))
-    weeks = max(_weeks_for(it["material_code"], "B", 99)[1] for it in items)
+    weeks = max(_weeks_for(it["material_code"], "B", (date.fromisoformat(it["need_by"]) - po).days)[1]
+                for it in items)
     stds = sorted({s_ for it in items for s_ in _standards(it)})
     cited = [NEAR_EQUIV.get(x, x) for x in stds if not _is_supplier_qms(x)]
     story += [t, Spacer(1, 5 * mm),
@@ -244,7 +250,7 @@ def _vendor_d(rfq, items, po, out: Path) -> Path:
     for n, it in enumerate(items, 1):
         unit_inr = _price(it, "D", rfq["rfq_id"])
         pack = 2 if unit_inr < 20000 and it["qty"] % 2 == 0 else 1
-        lo, hi = _weeks_for(it["material_code"], "D", 99)
+        lo, hi = _weeks_for(it["material_code"], "D", (date.fromisoformat(it["need_by"]) - po).days)
         vals = [n, f"PMC-{it['material_code'][-3:]}{n}", _label(it).lower(),
                 "PACK (2 PCS)" if pack == 2 else "PC", it["qty"] // pack, round(unit_inr * pack / USD, 2)]
         for c, v in enumerate(vals, 1):
@@ -266,8 +272,10 @@ def _vendor_d(rfq, items, po, out: Path) -> Path:
 # --------------------------------------------------------------------------- E · terse email
 def _vendor_e(rfq, items, po) -> str:
     parts = ", ".join(f"{_label(it).lower()} Rs {_price(it, 'E', rfq['rfq_id']):,.0f}" for it in items)
-    weeks = max(_weeks_for(it["material_code"], "E", 99)[1] for it in items)
-    return (f"Hi,\n\nCan supply - {parts} per pc, dispatch in {weeks} weeks. Same terms as our last order.\n\n"
+    weeks = min(_weeks_for(it["material_code"], "E", (date.fromisoformat(it["need_by"]) - po).days)[1]
+                for it in items)
+    when = "ex-stock" if weeks == 0 else f"dispatch in {weeks} weeks"
+    return (f"Hi,\n\nCan supply - {parts} per pc, {when}. Same terms as our last order.\n\n"
             "Rakesh\nVardhman Industrial Supplies\n")
 
 
@@ -292,7 +300,9 @@ def _vendor_f(rfq, items, po, out: Path) -> Path:
              Paragraph("Authorised Stockist & Assembler · Parrys, Chennai 600001", s(8.5)), Spacer(1, 4 * mm),
              Paragraph("RATE CARD (Effective 1 September 2026)", s(13, "DejaVu-Bold")), Spacer(1, 3 * mm), t,
              Spacer(1, 5 * mm)]
-    for line in ["• Standard lead time: 12–13 weeks from PO, all items.", "• Payment: 30 days from GRN.",
+    lo, hi = max((_weeks_for(it["material_code"], "F", (date.fromisoformat(it["need_by"]) - po).days)
+                  for it in items), key=lambda x: x[1])
+    for line in [f"• Standard lead time: {lo}–{hi} weeks from PO, all items.", "• Payment: 30 days from GRN.",
                  "• Prices ex-godown Chennai. GST 18% extra. Freight to pay.",
                  "• Certifications: " + ", ".join(sorted({x for it in items for x in _standards(it)}))
                  + " — all valid to 31-Dec-2027."]:
